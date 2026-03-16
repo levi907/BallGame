@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ball Machine</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>Ball Machine</h1>
+    <div class="header-actions">
+      <button class="btn btn-small" id="how-to-play-btn">How to Play</button>
+      <button class="btn btn-small btn-danger" id="new-game-btn">New Game</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- LEFT: Machine -->
+    <section class="panel panel-machine">
+      <div class="machine-container">
+        <div class="machine-top"></div>
+        <div class="machine-body" id="machine-balls"></div>
+        <div class="machine-base">
+          <span id="ball-count">11</span> balls
+        </div>
+      </div>
+      <div id="pull-result" class="pull-result"></div>
+      <button class="btn btn-pull" id="pull-btn">PULL ($1)</button>
+      <button class="btn btn-end-turn" id="end-turn-btn" style="display:none">End Turn</button>
+    </section>
+
+    <!-- CENTER: Stats & Log -->
+    <section class="panel panel-stats">
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">Turn</div>
+          <div class="stat-value" id="turn-display">1</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Round</div>
+          <div class="stat-value" id="round-display">1</div>
+        </div>
+        <div class="stat-box stat-cash">
+          <div class="stat-label">Cash</div>
+          <div class="stat-value" id="cash-display">$10</div>
+        </div>
+        <div class="stat-box stat-tickets">
+          <div class="stat-label">Tickets</div>
+          <div class="stat-value" id="tickets-display">0tx</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Pull Cost</div>
+          <div class="stat-value" id="pull-cost-display">$1</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Pulls Left</div>
+          <div class="stat-value" id="pulls-remaining">1</div>
+        </div>
+      </div>
+
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+        <div class="progress-text" id="progress-text">Turn 1 / 30</div>
+      </div>
+
+      <div class="modifiers" id="active-modifiers"></div>
+
+      <div class="log-container">
+        <h3>Log</h3>
+        <div class="game-log" id="game-log"></div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Shop -->
+    <section class="panel panel-shop shop-hidden" id="shop-section">
+      <h2>Shop</h2>
+      <div class="shop-countdown" id="shop-reset-countdown">New shop this round!</div>
+
+      <h3>Balls</h3>
+      <div class="shop-grid" id="shop-balls"></div>
+
+      <h3>Upgrades</h3>
+      <div class="shop-grid" id="shop-upgrades"></div>
+    </section>
+  </main>
+
+  <!-- Modals -->
+  <div class="modal-overlay" id="peek-modal" style="display:none">
+    <div class="modal">
+      <h2>Peek - Next Balls</h2>
+      <div class="peek-grid" id="peek-content"></div>
+      <button class="btn" id="peek-close-btn">Got it!</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="ball-select-modal" style="display:none">
+    <div class="modal">
+      <h2>Select a Ball</h2>
+      <div class="ball-select-grid" id="ball-select-content"></div>
+      <button class="btn" id="ball-select-cancel-btn">Cancel</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="gameover-modal" style="display:none">
+    <div class="modal">
+      <h2 id="gameover-result">GAME OVER</h2>
+      <div class="gameover-stats">
+        <div>Turns survived: <strong id="gameover-turns">0</strong></div>
+        <div>Total cash earned: <strong id="gameover-cash">$0</strong></div>
+        <div>Total tickets earned: <strong id="gameover-tickets">0tx</strong></div>
+        <div>Total pulls: <strong id="gameover-pulls">0</strong></div>
+        <div>High score (cash earned): <strong id="gameover-highscore">$0</strong></div>
+      </div>
+      <button class="btn btn-pull" id="play-again-btn">Play Again</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="rules-modal" style="display:none">
+    <div class="modal modal-rules">
+      <h2>How to Play</h2>
+      <div class="rules-content">
+        <p><strong>Goal:</strong> Survive 30 turns without going bankrupt!</p>
+        <p><strong>Each turn:</strong> Pay the pull cost to draw a random ball from your machine. The ball gives you cash, tickets, or special effects.</p>
+        <p><strong>Cash ($):</strong> Used to pay for pulls. If you can't afford a pull, you lose!</p>
+        <p><strong>Tickets (tx):</strong> Used to buy new balls and upgrades from the shop.</p>
+        <p><strong>Pull cost:</strong> Increases every 5 turns (new round). Plan ahead!</p>
+        <p><strong>Shop:</strong> Refreshes every round with 3 balls and 3 upgrades. Available after pulling.</p>
+        <p><strong>Strategy:</strong> Remove weak starter balls, add stronger ones, and build combos to stay alive!</p>
+      </div>
+      <button class="btn" id="rules-close-btn">Got it!</button>
+    </div>
+  </div>
+
+  <script src="js/utils.js"></script>
+  <script src="js/balls.js"></script>
+  <script src="js/upgrades.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/machine.js"></script>
+  <script src="js/shop.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
