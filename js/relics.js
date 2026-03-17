@@ -71,15 +71,13 @@ const RELIC_CATALOG = {
   },
   momentum: {
     name: 'Momentum',
-    description: 'Each pull this turn gives +$1 more than the last',
+    description: 'Each pull has a 20% chance to grant a bonus pull',
     cost: 5,
     color: '#82e0aa',
     onPull(state, ballDef) {
-      // pullsThisTurn is already incremented, so bonus = pulls-1
-      const bonus = state.stats.pullsThisTurn - 1;
-      if (bonus > 0) {
-        state.cash += bonus;
-        state.stats.totalCashEarned += bonus;
+      if (Math.random() < 0.2) {
+        state.pullsRemaining += 1;
+        addLog(state, 'Momentum: bonus pull!');
       }
     },
   },
@@ -96,10 +94,12 @@ const RELIC_CATALOG = {
   },
   golden_ratio: {
     name: 'Golden Ratio',
-    description: 'Every 3rd pull each turn is free (no cost)',
+    description: '+1 pull each turn',
     cost: 4,
     color: '#fad7a0',
-    // Handled in machine.js pull cost logic
+    onTurnStart(state) {
+      state.pullsRemaining += 1;
+    },
   },
   collectors_tome: {
     name: "Collector's Tome",

@@ -86,7 +86,7 @@ function renderMachine(state) {
     const el = document.createElement('div');
     el.className = 'ball';
     el.dataset.ballId = ballInstance.id;
-    el.style.backgroundColor = getBallColor(ballDef);
+    el.style.background = `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.35) 0%, ${getBallColor(ballDef)} 45%, rgba(0,0,0,0.2) 100%)`;
 
     if (ballDef.rarity === RARITY.LEGENDARY) el.classList.add('ball-legendary');
     if (ballInstance.type === 'starter_bonus') el.classList.add('ball-golden');
@@ -151,9 +151,12 @@ function renderDraft(state) {
       const card = document.createElement('div');
       card.className = 'draft-card';
       card.dataset.draftIndex = idx;
+      const c = getBallColor(ballDef);
+      const rarityGlow = ballDef.rarity === RARITY.LEGENDARY ? `0 0 18px ${c}80` :
+                          ballDef.rarity === RARITY.RARE ? `0 0 12px ${c}60` : `0 0 8px ${c}40`;
       card.innerHTML = `
-        <div class="ball-preview ball-preview-large" style="background-color: ${getBallColor(ballDef)}"></div>
-        <div class="draft-card-rarity" style="color: ${getBallColor(ballDef)}">
+        <div class="ball-preview ball-preview-large" style="background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.35) 0%, ${c} 45%, rgba(0,0,0,0.2) 100%); box-shadow: inset 0 -3px 6px rgba(0,0,0,0.3), ${rarityGlow}"></div>
+        <div class="draft-card-rarity" style="color: ${c}">
           ${ballDef.rarity.toUpperCase()}${ballDef.consumable ? ' · consumable' : ''}
         </div>
         <div class="draft-card-name">${ballDef.name}</div>
@@ -491,7 +494,7 @@ function showPullResult(ballDef, message, pulledBallId) {
 
     const chuteBall = document.createElement('div');
     chuteBall.className = 'ball ball-chute';
-    chuteBall.style.backgroundColor = color;
+    chuteBall.style.background = `radial-gradient(circle at 35% 30%, rgba(255,255,255,0.35) 0%, ${color} 45%, rgba(0,0,0,0.2) 100%)`;
     if (ballDef.rarity === RARITY.LEGENDARY) chuteBall.classList.add('ball-legendary');
     if (ballDef.consumable) chuteBall.classList.add('ball-consumable');
     chuteBall.style.width = '24px';
@@ -513,7 +516,7 @@ function showPullResult(ballDef, message, pulledBallId) {
     setTimeout(() => {
       chuteBall.remove();
       toast.innerHTML = `
-        <div class="ball-preview ball-preview-large" style="background-color: ${color}"></div>
+        <div class="ball-preview ball-preview-large" style="background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.35) 0%, ${color} 45%, rgba(0,0,0,0.2) 100%); box-shadow: inset 0 -3px 6px rgba(0,0,0,0.3), 0 0 14px ${color}50"></div>
         <div class="pull-result-name" style="color: ${color}">${ballDef.name}</div>
         <div class="pull-result-message">${message}</div>
       `;
