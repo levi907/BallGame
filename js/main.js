@@ -2,6 +2,8 @@
 
 let gameState = null;
 let pendingUpgradeIndex = null; // for selection-based upgrades
+let _turnStartCash = 0;
+let _turnStartTickets = 0;
 
 function initGame(loadSave) {
   if (loadSave) {
@@ -23,6 +25,10 @@ function startTurn() {
     gameState.shopGenerated = true;
     addLog(gameState, `--- Round ${round} --- Pull cost: ${formatCash(getPullCost(round))}`);
   }
+
+  // Track start-of-turn resources for transition display
+  _turnStartCash = gameState.cash;
+  _turnStartTickets = gameState.tickets;
 
   // Reset per-turn state
   gameState.pullsRemaining = 1;
@@ -80,9 +86,16 @@ function handlePull() {
 }
 
 function handleEndTurn() {
+  // Calculate net change this turn
+  const cashNet = gameState.cash - _turnStartCash;
+  const ticketsNet = gameState.tickets - _turnStartTickets;
+
   gameState.turn += 1;
   gameState.shopGenerated = (gameState.turn - 1) % 5 !== 0;
-  startTurn();
+
+  showTurnTransition(gameState.turn, cashNet, ticketsNet, () => {
+    startTurn();
+  });
 }
 
 function handleBuyBall(index) {

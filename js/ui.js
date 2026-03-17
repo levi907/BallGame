@@ -185,11 +185,16 @@ function renderControls(state) {
     endTurnBtn.style.display = 'none';
   }
 
-  // Show/hide shop based on phase
-  if (state.phase === 'shopping' || state.pullsRemaining <= 0) {
+  // Shop only visible on last turn of each round (turns 5, 10, 15, 20, 25, 30)
+  const isShopTurn = state.turn % 5 === 0;
+  if (isShopTurn && (state.phase === 'shopping' || state.pullsRemaining <= 0)) {
+    shopSection.style.display = '';
     shopSection.classList.remove('shop-hidden');
-  } else {
+  } else if (isShopTurn) {
+    shopSection.style.display = '';
     shopSection.classList.add('shop-hidden');
+  } else {
+    shopSection.style.display = 'none';
   }
 }
 
@@ -261,6 +266,43 @@ function showBallSelectionModal(state, upgradeIndex, filterFn) {
     });
     content.appendChild(el);
   });
+}
+
+/**
+ * Show a turn transition overlay with turn number and earnings summary.
+ */
+function showTurnTransition(nextTurn, cashEarned, ticketsEarned, callback) {
+  const overlay = document.getElementById('turn-transition');
+  const turnNum = document.getElementById('transition-turn');
+  const sub = document.getElementById('transition-sub');
+
+  turnNum.textContent = nextTurn;
+
+  // Build summary line
+  const parts = [];
+  if (cashEarned !== 0) {
+    const sign = cashEarned >= 0 ? '+' : '';
+    parts.push(`<span class="cash-earned">${sign}$${cashEarned}</span>`);
+  }
+  if (ticketsEarned > 0) {
+    parts.push(`<span class="tickets-earned">+${ticketsEarned} ★</span>`);
+  }
+
+  // Check for new round
+  const nextRound = getRound(nextTurn);
+  const prevRound = getRound(nextTurn - 1);
+  if (nextRound !== prevRound) {
+    parts.push(`Round ${nextRound}`);
+  }
+
+  sub.innerHTML = parts.join(' &middot; ');
+
+  overlay.classList.add('active');
+
+  setTimeout(() => {
+    overlay.classList.remove('active');
+    if (callback) setTimeout(callback, 200);
+  }, 900);
 }
 
 /**

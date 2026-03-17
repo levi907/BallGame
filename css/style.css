@@ -356,30 +356,37 @@ main {
 
 .btn-pull {
   width: 100%;
-  padding: 12px;
-  font-size: 1.05rem;
+  padding: 14px;
+  font-size: 1.1rem;
   font-weight: 700;
   background: var(--accent);
-  margin-top: 6px;
-  letter-spacing: 0.03em;
+  margin-top: 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(217, 68, 102, 0.3);
 }
 
 .btn-pull:hover:not(:disabled) {
   background: var(--accent-hover);
+  box-shadow: 0 4px 12px rgba(217, 68, 102, 0.4);
 }
 
 .btn-end-turn {
   width: 100%;
   padding: 12px;
-  font-size: 1.05rem;
-  font-weight: 700;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  margin-top: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: transparent;
+  border: 1px solid var(--purple-muted);
+  color: var(--text-secondary);
+  margin-top: 8px;
+  letter-spacing: 0.02em;
 }
 
 .btn-end-turn:hover:not(:disabled) {
-  background: #2e2e50;
+  background: rgba(123, 94, 167, 0.12);
+  border-color: var(--purple);
+  color: var(--text-primary);
 }
 
 .btn-buy {
@@ -620,6 +627,67 @@ main {
 
 .gameover-stats strong {
   color: var(--text-primary);
+}
+
+/* ── Turn Transition ── */
+
+.turn-transition {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 20, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.turn-transition.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.turn-transition-content {
+  text-align: center;
+  transform: scale(0.9);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.turn-transition.active .turn-transition-content {
+  transform: scale(1);
+}
+
+.turn-transition-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.turn-transition-number {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.turn-transition-sub {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.turn-transition-sub .cash-earned {
+  color: var(--cash-color);
+  font-weight: 600;
+}
+
+.turn-transition-sub .tickets-earned {
+  color: var(--ticket-color);
+  font-weight: 600;
 }
 
 /* ── Responsive ── */
