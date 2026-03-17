@@ -31,7 +31,8 @@ function startTurn() {
   _turnStartTickets = gameState.tickets;
 
   // Reset per-turn state
-  gameState.pullsRemaining = 1;
+  gameState.pullsRemaining = 2;
+  gameState._turnCostPaid = false;
   gameState.modifiers.doubleNext = false;
   gameState.modifiers.peekBalls = [];
   gameState.modifiers.transmuteActive = false;

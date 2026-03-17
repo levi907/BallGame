@@ -247,16 +247,13 @@ function renderControls(state) {
     endTurnBtn.style.display = 'none';
   }
 
-  // Shop only visible on last turn of each round (turns 5, 10, 15, 20, 25, 30)
-  const isShopTurn = state.turn % 5 === 0;
-  if (isShopTurn && (state.phase === 'shopping' || state.pullsRemaining <= 0)) {
+  // Shop visible during shopping phase (items refresh every 5 turns)
+  if (state.phase === 'shopping' || state.pullsRemaining <= 0) {
     shopSection.style.display = '';
     shopSection.classList.remove('shop-hidden');
-  } else if (isShopTurn) {
+  } else {
     shopSection.style.display = '';
     shopSection.classList.add('shop-hidden');
-  } else {
-    shopSection.style.display = 'none';
   }
 }
 

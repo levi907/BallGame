@@ -98,10 +98,10 @@ const UPGRADE_CATALOG = {
       const ball = state.machine[idx];
       if (ball.type === 'starter_dollar') {
         ball.type = 'dollar_ball';
-        return 'Starter Dollar → Dollar Ball (+$2)!';
+        return 'Starter Dollar → Dollar Ball (+$4)!';
       } else if (ball.type === 'starter_ticket') {
         ball.type = 'ticket_ball';
-        return 'Starter Ticket → Ticket Ball (+2tx)!';
+        return 'Starter Ticket → Ticket Ball (+2tx each)!';
       }
       return 'Cannot upgrade this ball';
     },
