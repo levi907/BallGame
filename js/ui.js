@@ -28,6 +28,21 @@ function renderStats(state) {
   const progress = Math.min(state.turn / 30, 1) * 100;
   document.getElementById('progress-fill').style.width = progress + '%';
 
+  // Next turn cost
+  const nextTurn = state.turn + 1;
+  const nextRound = getRound(nextTurn);
+  const nextCost = getPullCost(nextRound);
+  const nextCostEl = document.getElementById('next-cost-display');
+  if (nextCost !== pullCost && state.turn < 30) {
+    nextCostEl.textContent = `Next: ${formatCash(nextCost)}`;
+    nextCostEl.className = state.cash < nextCost ? 'next-cost next-cost-warn' : 'next-cost';
+  } else if (state.turn < 30) {
+    nextCostEl.textContent = `Next: ${formatCash(nextCost)}`;
+    nextCostEl.className = state.cash < nextCost ? 'next-cost next-cost-warn' : 'next-cost';
+  } else {
+    nextCostEl.textContent = '';
+  }
+
   // Shop reset countdown
   const turnsUntilReset = 5 - ((state.turn - 1) % 5);
   document.getElementById('shop-reset-countdown').textContent =
@@ -100,9 +115,8 @@ function renderMachine(state) {
 
 function startBounceLoop() {
   const container = document.getElementById('machine-balls');
-  const GRAVITY = 0.012;
-  const DAMPING = 0.998;
-  const BOUNCE = 0.6;
+  const DAMPING = 0.997;
+  const BOUNCE = 0.7;
   const MIN_X = 5, MAX_X = 90;
   const MIN_Y = 5, MAX_Y = 88;
 
@@ -113,8 +127,7 @@ function startBounceLoop() {
       const phys = _ballPhysics[id];
       if (!phys) return;
 
-      // Apply gravity and damping
-      phys.vy += GRAVITY;
+      // Damping only, no gravity — balls float freely
       phys.vx *= DAMPING;
       phys.vy *= DAMPING;
 
@@ -126,17 +139,12 @@ function startBounceLoop() {
       if (phys.x < MIN_X) { phys.x = MIN_X; phys.vx = Math.abs(phys.vx) * BOUNCE; }
       if (phys.x > MAX_X) { phys.x = MAX_X; phys.vx = -Math.abs(phys.vx) * BOUNCE; }
       if (phys.y < MIN_Y) { phys.y = MIN_Y; phys.vy = Math.abs(phys.vy) * BOUNCE; }
-      if (phys.y > MAX_Y) {
-        phys.y = MAX_Y;
-        phys.vy = -Math.abs(phys.vy) * BOUNCE;
-        // Add small random horizontal nudge on floor bounce
-        phys.vx += (Math.random() - 0.5) * 0.15;
-      }
+      if (phys.y > MAX_Y) { phys.y = MAX_Y; phys.vy = -Math.abs(phys.vy) * BOUNCE; }
 
-      // Tiny random jitter to keep things alive
-      if (Math.abs(phys.vx) < 0.05 && Math.abs(phys.vy) < 0.05) {
-        phys.vx += (Math.random() - 0.5) * 0.08;
-        phys.vy -= Math.random() * 0.15;
+      // Tiny random jitter to keep things drifting
+      if (Math.abs(phys.vx) < 0.03 && Math.abs(phys.vy) < 0.03) {
+        phys.vx += (Math.random() - 0.5) * 0.06;
+        phys.vy += (Math.random() - 0.5) * 0.06;
       }
 
       el.style.left = phys.x + '%';
@@ -152,6 +160,11 @@ function startBounceLoop() {
 function renderShop(state) {
   const ballsContainer = document.getElementById('shop-balls');
   const upgradesContainer = document.getElementById('shop-upgrades');
+  const shopSection = document.getElementById('shop-section');
+
+  // Update shop header with available tickets
+  const shopHeading = shopSection.querySelector('h2');
+  shopHeading.innerHTML = `Shop <span class="shop-tickets">&#9733; ${state.tickets}</span>`;
 
   // Render shop balls
   ballsContainer.innerHTML = '';
@@ -364,6 +377,18 @@ function showBallSelectionModal(state, upgradeIndex, filterFn) {
     });
     content.appendChild(el);
   });
+}
+
+/**
+ * Show the cost deduction animation on the cash display.
+ */
+function showCostAnimation(amount) {
+  const el = document.getElementById('cost-anim');
+  el.textContent = `-$${amount}`;
+  el.classList.remove('active');
+  // Force reflow to restart animation
+  void el.offsetWidth;
+  el.classList.add('active');
 }
 
 /**

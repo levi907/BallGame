@@ -70,8 +70,16 @@ function startTurn() {
 function handlePull() {
   if (gameState.phase !== 'pulling' || gameState.pullsRemaining <= 0) return;
 
+  // Show cost animation on first pull of the turn
+  const isFirstPull = !gameState._turnCostPaid;
+  const pullCost = isFirstPull ? getPullCost(getRound(gameState.turn)) : 0;
+
   const result = pullBall(gameState);
   if (!result) return;
+
+  if (isFirstPull && pullCost > 0) {
+    showCostAnimation(pullCost);
+  }
 
   const { ball, ballDef, message } = result;
   addLog(gameState, `Pulled ${ballDef.name}: ${message}`);

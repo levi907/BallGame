@@ -25,15 +25,17 @@
   <div class="currency-bar">
     <div class="currency cash-currency">
       <span class="currency-icon">$</span>
-      <span class="currency-value" id="cash-display">10</span>
+      <span class="currency-value" id="cash-display">15</span>
+      <span class="cost-anim" id="cost-anim"></span>
     </div>
     <div class="currency ticket-currency">
       <span class="currency-icon">&#9733;</span>
       <span class="currency-value" id="tickets-display">0</span>
     </div>
     <div class="pull-info">
-      <span class="pull-cost">Pull: <strong id="pull-cost-display">$1</strong></span>
-      <span class="pulls-left"><span id="pulls-remaining">1</span> left</span>
+      <span class="pull-cost">Cost: <strong id="pull-cost-display">$1</strong></span>
+      <span class="pulls-left"><span id="pulls-remaining">2</span> left</span>
+      <span class="next-cost" id="next-cost-display"></span>
     </div>
     <div class="modifiers" id="active-modifiers"></div>
   </div>
@@ -65,20 +67,20 @@
       </div>
     </section>
 
-    <!-- CENTER: Log -->
-    <section class="panel panel-stats">
-      <div class="shop-countdown" id="shop-reset-countdown">New shop this round!</div>
-      <div class="log-container">
-        <div class="game-log" id="game-log"></div>
-      </div>
-    </section>
-
-    <!-- RIGHT: Shop -->
+    <!-- CENTER: Shop -->
     <section class="panel panel-shop shop-hidden" id="shop-section">
       <h2>Shop</h2>
+      <div class="shop-countdown" id="shop-reset-countdown">New shop this round!</div>
       <div class="shop-grid" id="shop-balls"></div>
       <h3>Upgrades</h3>
       <div class="shop-grid" id="shop-upgrades"></div>
+    </section>
+
+    <!-- RIGHT: Log -->
+    <section class="panel panel-stats">
+      <div class="log-container">
+        <div class="game-log" id="game-log"></div>
+      </div>
     </section>
   </main>
 

@@ -162,6 +162,51 @@ header h1 {
   color: var(--text-muted);
 }
 
+.next-cost {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.next-cost-warn {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Cost deduction animation */
+.cost-anim {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.cost-anim.active {
+  animation: cost-float 1.2s ease-out forwards;
+}
+
+@keyframes cost-float {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-28px);
+  }
+}
+
+.cash-currency {
+  position: relative;
+}
+
 .modifiers {
   font-size: 0.75rem;
   color: var(--ticket-color);
@@ -182,7 +227,7 @@ header h1 {
 
 main {
   display: grid;
-  grid-template-columns: 260px 1fr 300px;
+  grid-template-columns: 260px 1fr 240px;
   gap: 12px;
   padding: 12px;
   max-width: 1200px;
@@ -443,6 +488,15 @@ main {
   font-size: 1rem;
   font-weight: 700;
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.shop-tickets {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ticket-color);
 }
 
 .panel-shop h3 {
