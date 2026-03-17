@@ -63,7 +63,7 @@ function formatTickets(amount) {
  * Get the pull cost for a given round number.
  */
 function getPullCost(round) {
-  const costs = [1, 2, 3, 4, 6, 8, 11];
+  const costs = [1, 2, 4, 7, 12, 16, 22];
   return costs[Math.min(round - 1, costs.length - 1)];
 }
 

@@ -25,15 +25,17 @@
   <div class="currency-bar">
     <div class="currency cash-currency">
       <span class="currency-icon">$</span>
-      <span class="currency-value" id="cash-display">10</span>
+      <span class="currency-value" id="cash-display">8</span>
+      <span class="cost-anim" id="cost-anim"></span>
     </div>
     <div class="currency ticket-currency">
       <span class="currency-icon">&#9733;</span>
       <span class="currency-value" id="tickets-display">0</span>
     </div>
     <div class="pull-info">
-      <span class="pull-cost">Pull: <strong id="pull-cost-display">$1</strong></span>
+      <span class="pull-cost">Cost: <strong id="pull-cost-display">$1</strong></span>
       <span class="pulls-left"><span id="pulls-remaining">1</span> left</span>
+      <span class="next-cost" id="next-cost-display"></span>
     </div>
     <div class="modifiers" id="active-modifiers"></div>
   </div>
@@ -65,20 +67,35 @@
       </div>
     </section>
 
-    <!-- CENTER: Log -->
+    <!-- CENTER: Draft + Shop -->
+    <section class="panel panel-center">
+      <!-- Ball Draft -->
+      <div id="draft-section" class="draft-section" style="display:none">
+        <h2>Draft a Ball</h2>
+        <p class="draft-subtitle">Choose a ball to add to your machine</p>
+        <div class="draft-grid" id="draft-choices"></div>
+        <button class="btn btn-small btn-skip" id="draft-skip-btn">Skip</button>
+      </div>
+
+      <!-- Shop -->
+      <div id="shop-section" class="shop-section shop-hidden">
+        <h2>Shop</h2>
+        <div class="shop-countdown" id="shop-reset-countdown">New shop this round!</div>
+        <h3>Relics</h3>
+        <div class="shop-grid" id="shop-relics"></div>
+        <h3>Upgrades</h3>
+        <div class="shop-grid" id="shop-upgrades"></div>
+      </div>
+
+      <!-- Owned relics bar -->
+      <div class="relics-bar" id="relics-bar"></div>
+    </section>
+
+    <!-- RIGHT: Log -->
     <section class="panel panel-stats">
-      <div class="shop-countdown" id="shop-reset-countdown">New shop this round!</div>
       <div class="log-container">
         <div class="game-log" id="game-log"></div>
       </div>
-    </section>
-
-    <!-- RIGHT: Shop -->
-    <section class="panel panel-shop shop-hidden" id="shop-section">
-      <h2>Shop</h2>
-      <div class="shop-grid" id="shop-balls"></div>
-      <h3>Upgrades</h3>
-      <div class="shop-grid" id="shop-upgrades"></div>
     </section>
   </main>
 
@@ -126,12 +143,12 @@
       <h2>How to Play</h2>
       <div class="rules-content">
         <p><strong>Goal:</strong> Survive 30 turns without going bankrupt!</p>
-        <p><strong>Each turn:</strong> Pay the pull cost once, then draw 2 random balls. Balls give you <span class="inline-cash">$&nbsp;cash</span> or <span class="inline-ticket">&#9733;&nbsp;tickets</span>.</p>
+        <p><strong>Each turn:</strong> Pay the pull cost, then draw a random ball. Balls give you <span class="inline-cash">$&nbsp;cash</span> or <span class="inline-ticket">&#9733;&nbsp;tickets</span>.</p>
+        <p>After pulling, <strong>draft a new ball</strong> to add to your machine.</p>
         <p><span class="inline-cash">$&nbsp;Cash</span> pays for pulls. Can't afford the turn cost? You lose.</p>
-        <p><span class="inline-ticket">&#9733;&nbsp;Tickets</span> buy new balls and upgrades from the shop.</p>
+        <p><span class="inline-ticket">&#9733;&nbsp;Tickets</span> buy <strong>relics</strong> (passive effects) and upgrades from the shop.</p>
         <p><strong>Pull cost</strong> increases every 5 turns (rounds). Plan ahead!</p>
-        <p><strong>Shop</strong> refreshes each round with 3 balls and 3 upgrades. Buy after pulling!</p>
-        <p><strong>Strategy:</strong> Remove weak starter balls, add stronger ones, build combos!</p>
+        <p><strong>Strategy:</strong> Draft strong balls, buy relics for combos, remove weak starters!</p>
       </div>
       <button class="btn" id="rules-close-btn">Got it!</button>
     </div>
@@ -140,6 +157,7 @@
   <script src="js/utils.js"></script>
   <script src="js/balls.js"></script>
   <script src="js/upgrades.js"></script>
+  <script src="js/relics.js"></script>
   <script src="js/state.js"></script>
   <script src="js/machine.js"></script>
   <script src="js/shop.js"></script>

@@ -162,6 +162,51 @@ header h1 {
   color: var(--text-muted);
 }
 
+.next-cost {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.next-cost-warn {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Cost deduction animation */
+.cost-anim {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.cost-anim.active {
+  animation: cost-float 1.2s ease-out forwards;
+}
+
+@keyframes cost-float {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-28px);
+  }
+}
+
+.cash-currency {
+  position: relative;
+}
+
 .modifiers {
   font-size: 0.75rem;
   color: var(--ticket-color);
@@ -182,7 +227,7 @@ header h1 {
 
 main {
   display: grid;
-  grid-template-columns: 260px 1fr 300px;
+  grid-template-columns: 260px 1fr 240px;
   gap: 12px;
   padding: 12px;
   max-width: 1200px;
@@ -257,7 +302,35 @@ main {
   border-style: dashed;
 }
 
-/* Pull animation */
+/* Gobblegum machine animation */
+.machine-churning {
+  animation: machine-shake 0.12s ease-in-out infinite;
+  border-color: var(--purple) !important;
+  background: rgba(123, 94, 167, 0.12) !important;
+}
+
+@keyframes machine-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px) rotate(-0.5deg); }
+  75% { transform: translateX(2px) rotate(0.5deg); }
+}
+
+/* Ball dropping out of chute */
+.ball-chute {
+  transition: none;
+  pointer-events: none;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
+}
+
+.ball-chute-drop {
+  transform: translateY(60px) scale(1.2);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.55, 0, 0.68, 0.53),
+              opacity 0.4s ease-out;
+}
+
+/* Legacy pull animation */
 .ball-pulling {
   transition: none;
   pointer-events: none;
@@ -443,6 +516,15 @@ main {
   font-size: 1rem;
   font-weight: 700;
   margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.shop-tickets {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ticket-color);
 }
 
 .panel-shop h3 {
@@ -744,6 +826,169 @@ main {
 .turn-transition-sub .tickets-earned {
   color: var(--ticket-color);
   font-weight: 600;
+}
+
+/* ── Panel Center (Draft + Shop) ── */
+
+.panel-center h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-center h3 {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+/* ── Draft Section ── */
+
+.draft-section {
+  margin-bottom: 16px;
+}
+
+.draft-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.draft-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.draft-card {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 12px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.1s ease, background 0.15s ease;
+}
+
+.draft-card:hover {
+  border-color: var(--purple);
+  background: rgba(123, 94, 167, 0.1);
+  transform: translateY(-2px);
+}
+
+.draft-card .ball-preview-large {
+  margin: 0 auto 8px;
+}
+
+.draft-card-rarity {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.draft-card-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin-bottom: 3px;
+}
+
+.draft-card-desc {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.btn-skip {
+  margin-top: 8px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.btn-skip:hover:not(:disabled) {
+  color: var(--text-secondary);
+  border-color: var(--purple-muted);
+  background: transparent;
+}
+
+/* ── Relics Bar ── */
+
+.relics-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.relic-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  cursor: default;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.1s ease;
+}
+
+.relic-icon:hover {
+  transform: scale(1.15);
+}
+
+/* ── Shop Relic Cards ── */
+
+.shop-card-relic {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.shop-card-relic-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.shop-card-relic .shop-card-name,
+.shop-card-relic .shop-card-desc,
+.shop-card-relic .shop-card-cost,
+.shop-card-relic .shop-card-sold,
+.shop-card-relic .btn-buy {
+  flex-basis: calc(100% - 36px);
+}
+
+.shop-card-relic .shop-card-desc {
+  flex-basis: 100%;
+}
+
+.shop-card-relic .shop-card-cost {
+  flex-basis: auto;
+}
+
+.shop-card-relic .btn-buy,
+.shop-card-relic .shop-card-sold {
+  flex-basis: auto;
+  margin-left: auto;
+}
+
+/* Discount strikethrough */
+.discount-orig {
+  text-decoration: line-through;
+  opacity: 0.5;
+  font-weight: 400;
+  margin-left: 4px;
 }
 
 /* ── Responsive ── */

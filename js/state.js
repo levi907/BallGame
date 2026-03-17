@@ -16,13 +16,15 @@ function createInitialState() {
 
   return {
     turn: 1,
-    cash: 15,
+    cash: 8,
     tickets: 0,
     pullsRemaining: 1,
     machine: machine,
-    shop: { balls: [], upgrades: [] },
+    relics: [],
+    shop: { relics: [], upgrades: [] },
+    draft: null, // { choices: [{type, ...}], picked: false }
     log: [],
-    phase: 'pulling', // 'pulling' | 'shopping' | 'gameOver'
+    phase: 'pulling', // 'pulling' | 'drafting' | 'shopping' | 'gameOver'
     modifiers: {
       doubleNext: false,
       peekBalls: [],

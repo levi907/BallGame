@@ -21,7 +21,7 @@ function startTurn() {
 
   // Check if new round -> regenerate shop
   if ((gameState.turn - 1) % 5 === 0 || !gameState.shopGenerated) {
-    gameState.shop = generateShopContents();
+    gameState.shop = generateShopContents(gameState);
     gameState.shopGenerated = true;
     addLog(gameState, `--- Round ${round} --- Pull cost: ${formatCash(getPullCost(round))}`);
   }
@@ -31,21 +31,27 @@ function startTurn() {
   _turnStartTickets = gameState.tickets;
 
   // Reset per-turn state
-  gameState.pullsRemaining = 2;
+  gameState.pullsRemaining = 1;
   gameState._turnCostPaid = false;
   gameState.modifiers.doubleNext = false;
   gameState.modifiers.peekBalls = [];
   gameState.modifiers.transmuteActive = false;
   gameState.stats.pullsThisTurn = 0;
+  gameState.draft = null;
   gameState.phase = 'pulling';
+
+  // Apply relic onTurnStart effects (e.g. Thick Skin: +1 pull)
+  applyRelicOnTurnStart(gameState);
 
   // Check if player can afford pull
   if (!canAffordPull(gameState)) {
-    // Check insurance
+    // Check insurance modifier
     if (gameState.modifiers.insurance) {
       gameState.cash += 5;
       gameState.modifiers.insurance = false;
       addLog(gameState, 'Insurance activated! +$5');
+    } else if (applyRelicOnBankruptcy(gameState)) {
+      // Relic saved us (e.g. Safety Net)
     } else {
       // Game over - loss
       gameState.phase = 'gameOver';
@@ -70,18 +76,53 @@ function startTurn() {
 function handlePull() {
   if (gameState.phase !== 'pulling' || gameState.pullsRemaining <= 0) return;
 
+  // Show cost animation on first pull of the turn
+  const isFirstPull = !gameState._turnCostPaid;
+  const pullCost = isFirstPull ? getPullCost(getRound(gameState.turn)) : 0;
+
   const result = pullBall(gameState);
   if (!result) return;
+
+  if (isFirstPull && pullCost > 0) {
+    showCostAnimation(pullCost);
+  }
 
   const { ball, ballDef, message } = result;
   addLog(gameState, `Pulled ${ballDef.name}: ${message}`);
   showPullResult(ballDef, message, ball.id);
 
-  // Check if pulls are done
+  // Check if pulls are done -> go to drafting
   if (gameState.pullsRemaining <= 0) {
-    gameState.phase = 'shopping';
+    gameState.phase = 'drafting';
+    gameState.draft = generateBallDraft();
   }
 
+  saveState(gameState);
+  render(gameState);
+}
+
+function handleDraftPick(choiceIndex) {
+  if (gameState.phase !== 'drafting' || !gameState.draft) return;
+
+  const message = pickDraftBall(gameState, choiceIndex);
+  if (message) {
+    addLog(gameState, message);
+    gameState.phase = 'shopping';
+
+    // Apply relic onTurnEnd effects (after draft, before shopping)
+    applyRelicOnTurnEnd(gameState);
+
+    saveState(gameState);
+    render(gameState);
+  }
+}
+
+function handleSkipDraft() {
+  if (gameState.phase !== 'drafting') return;
+  gameState.draft = { choices: [], picked: true };
+  gameState.phase = 'shopping';
+  applyRelicOnTurnEnd(gameState);
+  addLog(gameState, 'Skipped ball draft');
   saveState(gameState);
   render(gameState);
 }
@@ -99,8 +140,8 @@ function handleEndTurn() {
   });
 }
 
-function handleBuyBall(index) {
-  const message = buyShopBall(gameState, index);
+function handleBuyRelic(index) {
+  const message = buyShopRelic(gameState, index);
   if (message) {
     addLog(gameState, message);
     saveState(gameState);
@@ -113,13 +154,18 @@ function handleBuyUpgrade(index) {
   if (!shopUpgrade || shopUpgrade.purchased) return;
 
   const upgradeDef = UPGRADE_CATALOG[shopUpgrade.type];
-  if (gameState.tickets < shopUpgrade.cost) return;
+
+  let cost = shopUpgrade.cost;
+  if (hasRelic(gameState, 'lucky_clover')) {
+    cost = Math.max(1, cost - 1);
+  }
+
+  if (gameState.tickets < cost) return;
   if (!upgradeDef.canUse(gameState)) return;
 
   if (upgradeDef.requiresSelection) {
     pendingUpgradeIndex = index;
 
-    // Determine which balls are selectable
     let filterFn = null;
     if (upgradeDef.getSelectableBalls) {
       const selectableIds = new Set(
@@ -135,12 +181,6 @@ function handleBuyUpgrade(index) {
   const result = buyShopUpgrade(gameState, index);
   if (result && result !== 'needs_selection') {
     addLog(gameState, result);
-
-    // If extra pull was bought, check if we need to go back to pulling
-    if (gameState.pullsRemaining > 0 && gameState.phase === 'pulling') {
-      // Already in pulling phase
-    }
-
     saveState(gameState);
     render(gameState);
   }
@@ -173,8 +213,8 @@ function handleShopClick(e) {
   const action = btn.dataset.action;
   const index = parseInt(btn.dataset.index, 10);
 
-  if (action === 'buy-ball') {
-    handleBuyBall(index);
+  if (action === 'buy-relic') {
+    handleBuyRelic(index);
   } else if (action === 'buy-upgrade') {
     handleBuyUpgrade(index);
   }
@@ -189,8 +229,16 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('play-again-btn').addEventListener('click', handleNewGame);
 
   // Shop event delegation
-  document.getElementById('shop-balls').addEventListener('click', handleShopClick);
-  document.getElementById('shop-upgrades').addEventListener('click', handleShopClick);
+  document.getElementById('shop-section').addEventListener('click', handleShopClick);
+
+  // Draft event delegation
+  document.getElementById('draft-section').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-draft-index]');
+    if (btn) {
+      handleDraftPick(parseInt(btn.dataset.draftIndex, 10));
+    }
+  });
+  document.getElementById('draft-skip-btn').addEventListener('click', handleSkipDraft);
 
   // Modal close buttons
   document.getElementById('peek-close-btn').addEventListener('click', () => {

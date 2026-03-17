@@ -1,29 +1,18 @@
 // Shop system for Ball Machine game
 
 /**
- * Generate random shop contents (3 balls + 3 upgrades).
+ * Generate random shop contents (3 relics + 3 upgrades).
  */
-function generateShopContents() {
-  const balls = [];
-  for (let i = 0; i < 3; i++) {
-    // Pick rarity by weight
-    const rarityItems = Object.entries(RARITY_SHOP_WEIGHTS).map(([rarity, weight]) => ({
-      item: rarity,
-      weight,
-    }));
-    const rarity = weightedRandom(rarityItems);
-
-    // Pick a random ball of that rarity
-    const ballTypes = getBallTypesByRarity(rarity);
-    if (ballTypes.length > 0) {
-      const ballType = randomPick(ballTypes);
-      balls.push({
-        type: ballType,
-        cost: RARITY_SHOP_COST[rarity],
-        purchased: false,
-      });
-    }
-  }
+function generateShopContents(state) {
+  // Pick 3 relics the player doesn't already own
+  const ownedRelics = new Set(state ? state.relics : []);
+  const availableRelics = getRelicTypes().filter(r => !ownedRelics.has(r));
+  const shuffledRelics = shuffle([...availableRelics]);
+  const relics = shuffledRelics.slice(0, 3).map(type => ({
+    type,
+    cost: RELIC_CATALOG[type].cost,
+    purchased: false,
+  }));
 
   // Pick 3 random upgrades
   const allUpgradeTypes = getUpgradeTypes();
@@ -34,45 +23,73 @@ function generateShopContents() {
     purchased: false,
   }));
 
-  return { balls, upgrades };
+  return { relics, upgrades };
 }
 
 /**
- * Buy a ball from the shop.
- * @returns {string|null} Message or null if purchase failed.
+ * Generate a ball draft (pick 1 of 3 random balls).
  */
-function buyShopBall(state, shopIndex) {
-  const shopBall = state.shop.balls[shopIndex];
-  if (!shopBall || shopBall.purchased) return null;
-  if (state.tickets < shopBall.cost) return null;
+function generateBallDraft() {
+  const choices = [];
+  for (let i = 0; i < 3; i++) {
+    const rarityItems = Object.entries(RARITY_SHOP_WEIGHTS).map(([rarity, weight]) => ({
+      item: rarity,
+      weight,
+    }));
+    const rarity = weightedRandom(rarityItems);
+    const ballTypes = getBallTypesByRarity(rarity);
+    if (ballTypes.length > 0) {
+      choices.push({ type: randomPick(ballTypes) });
+    }
+  }
+  return { choices, picked: false };
+}
 
-  state.tickets -= shopBall.cost;
-  shopBall.purchased = true;
+/**
+ * Buy a relic from the shop.
+ */
+function buyShopRelic(state, shopIndex) {
+  const shopRelic = state.shop.relics[shopIndex];
+  if (!shopRelic || shopRelic.purchased) return null;
 
-  const ball = addBallToMachine(state, shopBall.type);
-  const ballDef = BALL_CATALOG[shopBall.type];
+  let cost = shopRelic.cost;
+  // Lucky Clover discount
+  if (hasRelic(state, 'lucky_clover')) {
+    cost = Math.max(1, cost - 1);
+  }
 
-  return `Bought ${ballDef.name} for ${formatTickets(shopBall.cost)}`;
+  if (state.tickets < cost) return null;
+
+  state.tickets -= cost;
+  shopRelic.purchased = true;
+  state.relics.push(shopRelic.type);
+
+  const relicDef = RELIC_CATALOG[shopRelic.type];
+  return `Acquired ${relicDef.name}!`;
 }
 
 /**
  * Buy an upgrade from the shop.
- * For upgrades that require selection, returns 'needs_selection'.
- * @returns {string|null} Message, 'needs_selection', or null if purchase failed.
  */
 function buyShopUpgrade(state, shopIndex) {
   const shopUpgrade = state.shop.upgrades[shopIndex];
   if (!shopUpgrade || shopUpgrade.purchased) return null;
 
   const upgradeDef = UPGRADE_CATALOG[shopUpgrade.type];
-  if (state.tickets < shopUpgrade.cost) return null;
+
+  let cost = shopUpgrade.cost;
+  if (hasRelic(state, 'lucky_clover')) {
+    cost = Math.max(1, cost - 1);
+  }
+
+  if (state.tickets < cost) return null;
   if (!upgradeDef.canUse(state)) return null;
 
   if (upgradeDef.requiresSelection) {
     return 'needs_selection';
   }
 
-  state.tickets -= shopUpgrade.cost;
+  state.tickets -= cost;
   shopUpgrade.purchased = true;
 
   const message = upgradeDef.apply(state);
@@ -87,11 +104,31 @@ function completeUpgradePurchase(state, shopIndex, selectedBallId) {
   if (!shopUpgrade || shopUpgrade.purchased) return null;
 
   const upgradeDef = UPGRADE_CATALOG[shopUpgrade.type];
-  if (state.tickets < shopUpgrade.cost) return null;
 
-  state.tickets -= shopUpgrade.cost;
+  let cost = shopUpgrade.cost;
+  if (hasRelic(state, 'lucky_clover')) {
+    cost = Math.max(1, cost - 1);
+  }
+
+  if (state.tickets < cost) return null;
+
+  state.tickets -= cost;
   shopUpgrade.purchased = true;
 
   const message = upgradeDef.apply(state, selectedBallId);
   return message;
+}
+
+/**
+ * Pick a ball from the draft.
+ */
+function pickDraftBall(state, choiceIndex) {
+  if (!state.draft || state.draft.picked) return null;
+  const choice = state.draft.choices[choiceIndex];
+  if (!choice) return null;
+
+  state.draft.picked = true;
+  const ball = addBallToMachine(state, choice.type);
+  const ballDef = BALL_CATALOG[choice.type];
+  return `Drafted ${ballDef.name}!`;
 }

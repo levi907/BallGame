@@ -33,6 +33,9 @@ function pullBall(state) {
   // Apply the ball's effect
   const message = ballDef.apply(state);
 
+  // Apply relic onPull effects
+  applyRelicOnPull(state, ballDef);
+
   // Handle transmuter: convert tickets gained this turn to cash
   if (state.modifiers.transmuteActive) {
     const ticketsGained = state.tickets - ticketsBefore;
@@ -50,6 +53,8 @@ function pullBall(state) {
     if (idx !== -1) {
       state.machine.splice(idx, 1);
     }
+    // Trigger relic onConsume
+    applyRelicOnConsume(state, ballDef);
   }
 
   // Decrement pulls remaining
