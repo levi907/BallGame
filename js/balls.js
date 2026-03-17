@@ -37,9 +37,9 @@ const BALL_CATALOG = {
     rarity: RARITY.STARTER,
     color: '#6b9e6b',
     consumable: false,
-    description: '+$1',
+    description: '+$2',
     apply(state) {
-      let cash = 1;
+      let cash = 2;
       if (state.modifiers.doubleNext) { cash *= 2; state.modifiers.doubleNext = false; }
       state.cash += cash;
       state.stats.totalCashEarned += cash;
@@ -256,7 +256,7 @@ const BALL_CATALOG = {
     rarity: RARITY.RARE,
     color: '#8e24aa',
     consumable: false,
-    description: '+$2, remove a starter $1 ball',
+    description: '+$2, remove a Starter Dollar',
     apply(state) {
       let cash = 2;
       if (state.modifiers.doubleNext) { cash *= 2; state.modifiers.doubleNext = false; }
