@@ -1,4 +1,4 @@
-/* Ball Machine - Clean & Minimal Style */
+/* Ball Machine — Polished with Impeccable */
 
 * {
   margin: 0;
@@ -6,53 +6,201 @@
   box-sizing: border-box;
 }
 
+:root {
+  --bg-deep: #141422;
+  --bg-surface: #1c1c32;
+  --bg-elevated: #24243d;
+  --border: #2d2d4a;
+  --text-primary: #e8e6f0;
+  --text-secondary: #9896a8;
+  --text-muted: #6b697a;
+  --accent: #d94466;
+  --accent-hover: #e8597a;
+  --cash-color: #5bc47a;
+  --cash-bg: rgba(91, 196, 122, 0.12);
+  --ticket-color: #e8b84a;
+  --ticket-bg: rgba(232, 184, 74, 0.12);
+  --purple: #7b5ea7;
+  --purple-muted: #4a3d6b;
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #1a1a2e;
-  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg-deep);
+  color: var(--text-primary);
   min-height: 100vh;
 }
 
-/* Header */
+/* ── Header + Turn Bar ── */
+
 header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px 24px;
-  background: #16213e;
-  border-bottom: 1px solid #0f3460;
+  gap: 16px;
+  padding: 10px 20px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
 }
 
 header h1 {
-  font-size: 1.4rem;
-  color: #e94560;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.turn-bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.turn-indicator,
+.round-indicator {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.turn-indicator strong,
+.round-indicator strong {
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-elevated);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--purple));
+  border-radius: 3px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 0%;
 }
 
 .header-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
-/* Main Layout */
+/* ── Currency Bar ── */
+
+.currency-bar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 20px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.currency {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+
+.cash-currency {
+  background: var(--cash-bg);
+}
+
+.ticket-currency {
+  background: var(--ticket-bg);
+}
+
+.currency-icon {
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.cash-currency .currency-icon {
+  color: var(--cash-color);
+}
+
+.ticket-currency .currency-icon {
+  color: var(--ticket-color);
+}
+
+.currency-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.cash-currency .currency-value {
+  color: var(--cash-color);
+}
+
+.ticket-currency .currency-value {
+  color: var(--ticket-color);
+}
+
+.pull-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.pull-cost strong {
+  color: var(--cash-color);
+}
+
+.pulls-left {
+  color: var(--text-muted);
+}
+
+.modifiers {
+  font-size: 0.75rem;
+  color: var(--ticket-color);
+}
+
+/* Inline currency in rules */
+.inline-cash {
+  color: var(--cash-color);
+  font-weight: 600;
+}
+
+.inline-ticket {
+  color: var(--ticket-color);
+  font-weight: 600;
+}
+
+/* ── Main Layout ── */
+
 main {
   display: grid;
-  grid-template-columns: 280px 1fr 320px;
-  gap: 16px;
-  padding: 16px;
+  grid-template-columns: 260px 1fr 300px;
+  gap: 12px;
+  padding: 12px;
   max-width: 1200px;
   margin: 0 auto;
-  min-height: calc(100vh - 56px);
+  min-height: calc(100vh - 88px);
 }
 
-/* Panels */
+/* ── Panels ── */
+
 .panel {
-  background: #16213e;
-  border-radius: 12px;
-  padding: 16px;
-  border: 1px solid #0f3460;
+  background: var(--bg-surface);
+  border-radius: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
 }
 
-/* Machine Panel */
+/* ── Machine ── */
+
 .machine-container {
   display: flex;
   flex-direction: column;
@@ -60,47 +208,49 @@ main {
 }
 
 .machine-top {
-  width: 40px;
-  height: 30px;
-  background: #533483;
-  border-radius: 8px 8px 0 0;
+  width: 36px;
+  height: 26px;
+  background: var(--purple-muted);
+  border-radius: 6px 6px 0 0;
 }
 
 .machine-body {
-  width: 220px;
-  height: 220px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid #533483;
-  border-radius: 50% 50% 12px 12px;
+  width: 210px;
+  height: 210px;
+  background: rgba(123, 94, 167, 0.06);
+  border: 2px solid var(--purple-muted);
+  border-radius: 50% 50% 10px 10px;
   position: relative;
   overflow: hidden;
 }
 
 .machine-base {
-  background: #533483;
-  padding: 8px 24px;
-  border-radius: 0 0 12px 12px;
-  font-size: 0.85rem;
+  background: var(--purple-muted);
+  padding: 6px 20px;
+  border-radius: 0 0 10px 10px;
+  font-size: 0.78rem;
   text-align: center;
+  color: var(--text-secondary);
 }
 
-/* Balls in machine */
+/* ── Balls ── */
+
 .ball {
   width: 18px;
   height: 18px;
   border-radius: 50%;
   position: absolute;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: opacity 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .ball-legendary {
-  box-shadow: 0 0 8px rgba(255, 152, 0, 0.6);
+  box-shadow: 0 0 8px rgba(255, 152, 0, 0.5);
 }
 
 .ball-golden {
-  box-shadow: 0 0 10px rgba(212, 168, 71, 0.7), 0 0 4px rgba(212, 168, 71, 0.4);
-  border-color: rgba(255, 215, 0, 0.5);
+  box-shadow: 0 0 10px rgba(212, 168, 71, 0.6), 0 0 4px rgba(212, 168, 71, 0.3);
+  border-color: rgba(255, 215, 0, 0.4);
 }
 
 .ball-consumable {
@@ -116,21 +266,22 @@ main {
 .ball-drop {
   transform: translateY(80px) scale(1.3);
   opacity: 0;
-  transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
               opacity 0.45s ease;
 }
 
-/* Pull Result Toast */
+/* ── Pull Result ── */
+
 .pull-result {
   text-align: center;
-  padding: 8px;
-  min-height: 80px;
+  padding: 6px;
+  min-height: 76px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.25s ease;
 }
 
 .pull-result.show {
@@ -138,243 +289,200 @@ main {
 }
 
 .ball-preview {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   display: inline-block;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .ball-preview-large {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
 }
 
 .pull-result-name {
-  font-weight: bold;
-  font-size: 0.95rem;
+  font-weight: 700;
+  font-size: 0.9rem;
   margin-top: 4px;
 }
 
 .pull-result-message {
-  font-size: 0.85rem;
-  color: #aaa;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
   margin-top: 2px;
 }
 
-/* Buttons */
+/* ── Buttons ── */
+
 .btn {
-  padding: 10px 20px;
+  padding: 8px 16px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  transition: all 0.15s ease;
-  background: #533483;
-  color: #e0e0e0;
+  transition: background 0.15s ease, transform 0.1s ease;
+  background: var(--purple-muted);
+  color: var(--text-primary);
 }
 
 .btn:hover:not(:disabled) {
-  background: #6a42a0;
+  background: var(--purple);
   transform: translateY(-1px);
 }
 
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
 .btn:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
 .btn-small {
-  padding: 6px 14px;
-  font-size: 0.8rem;
+  padding: 5px 12px;
+  font-size: 0.75rem;
 }
 
 .btn-danger {
-  background: #c0392b;
+  background: #8b2e2e;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #e74c3c;
+  background: #a63a3a;
 }
 
 .btn-pull {
   width: 100%;
   padding: 14px;
   font-size: 1.1rem;
-  background: #e94560;
+  font-weight: 700;
+  background: var(--accent);
   margin-top: 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(217, 68, 102, 0.3);
 }
 
 .btn-pull:hover:not(:disabled) {
-  background: #ff6b81;
+  background: var(--accent-hover);
+  box-shadow: 0 4px 12px rgba(217, 68, 102, 0.4);
 }
 
 .btn-end-turn {
   width: 100%;
-  padding: 14px;
-  font-size: 1.1rem;
-  background: #0f3460;
+  padding: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: transparent;
+  border: 1px solid var(--purple-muted);
+  color: var(--text-secondary);
   margin-top: 8px;
+  letter-spacing: 0.02em;
 }
 
 .btn-end-turn:hover:not(:disabled) {
-  background: #1a4f8a;
+  background: rgba(123, 94, 167, 0.12);
+  border-color: var(--purple);
+  color: var(--text-primary);
 }
 
 .btn-buy {
-  padding: 6px 14px;
-  font-size: 0.8rem;
-  background: #27ae60;
+  padding: 5px 12px;
+  font-size: 0.75rem;
+  background: #2d7a4a;
 }
 
 .btn-buy:hover:not(:disabled) {
-  background: #2ecc71;
+  background: #38945a;
 }
 
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 12px;
-}
+/* ── Log & Center Panel ── */
 
-.stat-box {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 8px 12px;
-  text-align: center;
-}
-
-.stat-label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  color: #888;
-  margin-bottom: 2px;
-}
-
-.stat-value {
-  font-size: 1.2rem;
-  font-weight: bold;
-}
-
-.stat-cash .stat-value {
-  color: #2ecc71;
-}
-
-.stat-tickets .stat-value {
-  color: #f1c40f;
-}
-
-/* Progress Bar */
-.progress-bar {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  height: 28px;
-  position: relative;
-  overflow: hidden;
-  margin-bottom: 8px;
-}
-
-.progress-fill {
-  background: linear-gradient(90deg, #e94560, #533483);
-  height: 100%;
-  border-radius: 8px;
-  transition: width 0.5s ease;
-  width: 0%;
-}
-
-.progress-text {
-  position: absolute;
-  inset: 0;
+.panel-stats {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
+  flex-direction: column;
+}
+
+.shop-countdown {
+  font-size: 0.72rem;
+  color: var(--accent);
+  margin-bottom: 6px;
   font-weight: 600;
 }
 
-/* Modifiers */
-.modifiers {
-  font-size: 0.8rem;
-  color: #f1c40f;
-  text-align: center;
-  min-height: 20px;
-  margin-bottom: 8px;
-}
-
-/* Log */
-.log-container h3 {
-  font-size: 0.85rem;
-  color: #888;
-  margin-bottom: 4px;
+.log-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .game-log {
-  background: rgba(0, 0, 0, 0.2);
+  flex: 1;
+  background: rgba(0, 0, 0, 0.15);
   border-radius: 8px;
-  padding: 8px;
-  max-height: 200px;
+  padding: 8px 10px;
   overflow-y: auto;
-  font-size: 0.75rem;
-  font-family: monospace;
+  font-size: 0.72rem;
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+  line-height: 1.6;
 }
 
 .log-entry {
-  padding: 2px 0;
-  color: #aaa;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  padding: 1px 0;
+  color: var(--text-secondary);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.025);
 }
 
-/* Shop */
+/* ── Shop ── */
+
 .panel-shop h2 {
-  font-size: 1.1rem;
-  margin-bottom: 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
 }
 
 .panel-shop h3 {
-  font-size: 0.85rem;
-  color: #888;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   margin-top: 12px;
   margin-bottom: 6px;
 }
 
 .shop-hidden {
-  opacity: 0.4;
+  opacity: 0.3;
   pointer-events: none;
-}
-
-.shop-countdown {
-  font-size: 0.75rem;
-  color: #e94560;
-  margin-bottom: 8px;
 }
 
 .shop-grid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .shop-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
   border-radius: 8px;
-  padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  transition: all 0.15s ease;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: border-color 0.15s ease;
 }
 
 .shop-card:not(.purchased):hover {
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .shop-card.purchased {
-  opacity: 0.3;
+  opacity: 0.25;
 }
 
 .shop-card-rarity {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -382,34 +490,38 @@ main {
 
 .shop-card-name {
   font-weight: 600;
-  font-size: 0.9rem;
-  margin: 2px 0;
+  font-size: 0.85rem;
+  margin: 1px 0;
 }
 
 .shop-card-desc {
-  font-size: 0.75rem;
-  color: #aaa;
-  margin-bottom: 6px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin-bottom: 5px;
 }
 
 .shop-card-cost {
-  font-size: 0.8rem;
-  color: #f1c40f;
-  font-weight: 600;
-  margin-bottom: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.75rem;
+  color: var(--ticket-color);
+  font-weight: 700;
+  margin-bottom: 5px;
 }
 
 .shop-card-sold {
-  font-size: 0.75rem;
-  color: #666;
+  font-size: 0.7rem;
+  color: var(--text-muted);
   font-weight: 600;
 }
 
-/* Modals */
+/* ── Modals ── */
+
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(10, 10, 20, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -417,32 +529,38 @@ main {
 }
 
 .modal {
-  background: #16213e;
-  border-radius: 16px;
+  background: var(--bg-surface);
+  border-radius: 14px;
   padding: 24px;
-  max-width: 420px;
+  max-width: 400px;
   width: 90%;
-  border: 1px solid #0f3460;
+  border: 1px solid var(--border);
   text-align: center;
 }
 
 .modal h2 {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+  font-size: 1.1rem;
 }
 
 .modal-rules {
   text-align: left;
-  max-width: 500px;
+  max-width: 460px;
 }
 
 .rules-content p {
   margin-bottom: 8px;
-  font-size: 0.85rem;
-  line-height: 1.5;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.rules-content strong {
+  color: var(--text-primary);
 }
 
 .modal-rules .btn {
-  margin-top: 16px;
+  margin-top: 14px;
   width: 100%;
 }
 
@@ -451,77 +569,206 @@ main {
   display: flex;
   gap: 16px;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .peek-ball {
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
 }
 
 .peek-desc {
-  font-size: 0.7rem;
-  color: #aaa;
+  font-size: 0.68rem;
+  color: var(--text-muted);
 }
 
 /* Ball Selection */
 .ball-select-grid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 300px;
+  gap: 6px;
+  max-height: 280px;
   overflow-y: auto;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .ball-select-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
+  padding: 7px 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.85rem;
-  transition: background 0.15s ease;
+  font-size: 0.82rem;
+  transition: background 0.12s ease;
 }
 
 .ball-select-item:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* Game Over */
 .result-win {
-  color: #2ecc71;
+  color: var(--cash-color);
 }
 
 .result-loss {
-  color: #e94560;
+  color: var(--accent);
 }
 
 .gameover-stats {
   text-align: left;
-  margin: 16px 0;
-  font-size: 0.9rem;
+  margin: 14px 0;
+  font-size: 0.85rem;
   line-height: 1.8;
+  color: var(--text-secondary);
 }
 
-/* Responsive */
+.gameover-stats strong {
+  color: var(--text-primary);
+}
+
+/* ── Machine Actions ── */
+
+.machine-actions {
+  width: 100%;
+}
+
+.btn-inventory {
+  width: 100%;
+  margin-top: 6px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.btn-inventory:hover {
+  color: var(--text-secondary);
+  border-color: var(--purple-muted);
+}
+
+/* ── Inventory Modal ── */
+
+.inventory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 340px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.inventory-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
+
+.inventory-item-count {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.inventory-item-rarity {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Turn Transition ── */
+
+.turn-transition {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 20, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.turn-transition.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.turn-transition-content {
+  text-align: center;
+  transform: scale(0.9);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.turn-transition.active .turn-transition-content {
+  transform: scale(1);
+}
+
+.turn-transition-label {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.turn-transition-number {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.turn-transition-sub {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+.turn-transition-sub .cash-earned {
+  color: var(--cash-color);
+  font-weight: 600;
+}
+
+.turn-transition-sub .tickets-earned {
+  color: var(--ticket-color);
+  font-weight: 600;
+}
+
+/* ── Responsive ── */
+
 @media (max-width: 900px) {
   main {
     grid-template-columns: 1fr;
-    max-width: 500px;
+    max-width: 480px;
   }
 
   .machine-body {
     width: 180px;
     height: 180px;
   }
+
+  .currency-bar {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
 }
 
-/* Scrollbar */
+/* ── Scrollbar ── */
+
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -529,6 +776,6 @@ main {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #533483;
+  background: var(--purple-muted);
   border-radius: 3px;
 }

@@ -9,11 +9,34 @@
 <body>
   <header>
     <h1>Ball Machine</h1>
+    <div class="turn-bar">
+      <span class="turn-indicator">Turn <strong id="turn-display">1</strong>/30</span>
+      <span class="round-indicator">Round <strong id="round-display">1</strong></span>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
     <div class="header-actions">
-      <button class="btn btn-small" id="how-to-play-btn">How to Play</button>
-      <button class="btn btn-small btn-danger" id="new-game-btn">New Game</button>
+      <button class="btn btn-small" id="how-to-play-btn">?</button>
+      <button class="btn btn-small btn-danger" id="new-game-btn">New</button>
     </div>
   </header>
+
+  <div class="currency-bar">
+    <div class="currency cash-currency">
+      <span class="currency-icon">$</span>
+      <span class="currency-value" id="cash-display">10</span>
+    </div>
+    <div class="currency ticket-currency">
+      <span class="currency-icon">&#9733;</span>
+      <span class="currency-value" id="tickets-display">0</span>
+    </div>
+    <div class="pull-info">
+      <span class="pull-cost">Pull: <strong id="pull-cost-display">$1</strong></span>
+      <span class="pulls-left"><span id="pulls-remaining">1</span> left</span>
+    </div>
+    <div class="modifiers" id="active-modifiers"></div>
+  </div>
 
   <main>
     <!-- LEFT: Machine -->
@@ -26,48 +49,26 @@
         </div>
       </div>
       <div id="pull-result" class="pull-result"></div>
-      <button class="btn btn-pull" id="pull-btn">PULL ($1)</button>
-      <button class="btn btn-end-turn" id="end-turn-btn" style="display:none">End Turn</button>
+      <div class="machine-actions">
+        <button class="btn btn-pull" id="pull-btn">PULL</button>
+        <button class="btn btn-end-turn" id="end-turn-btn" style="display:none">End Turn &rarr;</button>
+      </div>
+      <button class="btn btn-small btn-inventory" id="inventory-btn">View Balls</button>
+
+      <!-- Turn transition overlay -->
+      <div class="turn-transition" id="turn-transition">
+        <div class="turn-transition-content">
+          <div class="turn-transition-label">Turn</div>
+          <div class="turn-transition-number" id="transition-turn">2</div>
+          <div class="turn-transition-sub" id="transition-sub"></div>
+        </div>
+      </div>
     </section>
 
-    <!-- CENTER: Stats & Log -->
+    <!-- CENTER: Log -->
     <section class="panel panel-stats">
-      <div class="stats-grid">
-        <div class="stat-box">
-          <div class="stat-label">Turn</div>
-          <div class="stat-value" id="turn-display">1</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Round</div>
-          <div class="stat-value" id="round-display">1</div>
-        </div>
-        <div class="stat-box stat-cash">
-          <div class="stat-label">Cash</div>
-          <div class="stat-value" id="cash-display">$10</div>
-        </div>
-        <div class="stat-box stat-tickets">
-          <div class="stat-label">Tickets</div>
-          <div class="stat-value" id="tickets-display">0tx</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Pull Cost</div>
-          <div class="stat-value" id="pull-cost-display">$1</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Pulls Left</div>
-          <div class="stat-value" id="pulls-remaining">1</div>
-        </div>
-      </div>
-
-      <div class="progress-bar">
-        <div class="progress-fill" id="progress-fill"></div>
-        <div class="progress-text" id="progress-text">Turn 1 / 30</div>
-      </div>
-
-      <div class="modifiers" id="active-modifiers"></div>
-
+      <div class="shop-countdown" id="shop-reset-countdown">New shop this round!</div>
       <div class="log-container">
-        <h3>Log</h3>
         <div class="game-log" id="game-log"></div>
       </div>
     </section>
@@ -75,11 +76,7 @@
     <!-- RIGHT: Shop -->
     <section class="panel panel-shop shop-hidden" id="shop-section">
       <h2>Shop</h2>
-      <div class="shop-countdown" id="shop-reset-countdown">New shop this round!</div>
-
-      <h3>Balls</h3>
       <div class="shop-grid" id="shop-balls"></div>
-
       <h3>Upgrades</h3>
       <div class="shop-grid" id="shop-upgrades"></div>
     </section>
@@ -108,11 +105,19 @@
       <div class="gameover-stats">
         <div>Turns survived: <strong id="gameover-turns">0</strong></div>
         <div>Total cash earned: <strong id="gameover-cash">$0</strong></div>
-        <div>Total tickets earned: <strong id="gameover-tickets">0tx</strong></div>
+        <div>Total tickets earned: <strong id="gameover-tickets">0</strong></div>
         <div>Total pulls: <strong id="gameover-pulls">0</strong></div>
-        <div>High score (cash earned): <strong id="gameover-highscore">$0</strong></div>
+        <div>High score: <strong id="gameover-highscore">$0</strong></div>
       </div>
       <button class="btn btn-pull" id="play-again-btn">Play Again</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="inventory-modal" style="display:none">
+    <div class="modal modal-rules">
+      <h2>Your Machine</h2>
+      <div class="inventory-list" id="inventory-content"></div>
+      <button class="btn" id="inventory-close-btn">Close</button>
     </div>
   </div>
 
@@ -121,12 +126,12 @@
       <h2>How to Play</h2>
       <div class="rules-content">
         <p><strong>Goal:</strong> Survive 30 turns without going bankrupt!</p>
-        <p><strong>Each turn:</strong> Pay the pull cost to draw a random ball from your machine. The ball gives you cash, tickets, or special effects.</p>
-        <p><strong>Cash ($):</strong> Used to pay for pulls. If you can't afford a pull, you lose!</p>
-        <p><strong>Tickets (tx):</strong> Used to buy new balls and upgrades from the shop.</p>
-        <p><strong>Pull cost:</strong> Increases every 5 turns (new round). Plan ahead!</p>
-        <p><strong>Shop:</strong> Refreshes every round with 3 balls and 3 upgrades. Available after pulling.</p>
-        <p><strong>Strategy:</strong> Remove weak starter balls, add stronger ones, and build combos to stay alive!</p>
+        <p><strong>Each turn:</strong> Pay the pull cost once, then draw 2 random balls. Balls give you <span class="inline-cash">$&nbsp;cash</span> or <span class="inline-ticket">&#9733;&nbsp;tickets</span>.</p>
+        <p><span class="inline-cash">$&nbsp;Cash</span> pays for pulls. Can't afford the turn cost? You lose.</p>
+        <p><span class="inline-ticket">&#9733;&nbsp;Tickets</span> buy new balls and upgrades from the shop.</p>
+        <p><strong>Pull cost</strong> increases every 5 turns (rounds). Plan ahead!</p>
+        <p><strong>Shop</strong> refreshes each round with 3 balls and 3 upgrades. Buy after pulling!</p>
+        <p><strong>Strategy:</strong> Remove weak starter balls, add stronger ones, build combos!</p>
       </div>
       <button class="btn" id="rules-close-btn">Got it!</button>
     </div>

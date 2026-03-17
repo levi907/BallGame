@@ -18,8 +18,8 @@ function renderStats(state) {
 
   document.getElementById('turn-display').textContent = state.turn;
   document.getElementById('round-display').textContent = round;
-  document.getElementById('cash-display').textContent = formatCash(state.cash);
-  document.getElementById('tickets-display').textContent = formatTickets(state.tickets);
+  document.getElementById('cash-display').textContent = state.cash;
+  document.getElementById('tickets-display').textContent = state.tickets;
   document.getElementById('pull-cost-display').textContent = formatCash(pullCost);
   document.getElementById('pulls-remaining').textContent = state.pullsRemaining;
   document.getElementById('ball-count').textContent = state.machine.length;
@@ -27,7 +27,6 @@ function renderStats(state) {
   // Progress bar (survive 30 turns)
   const progress = Math.min(state.turn / 30, 1) * 100;
   document.getElementById('progress-fill').style.width = progress + '%';
-  document.getElementById('progress-text').textContent = `Turn ${state.turn} / 30`;
 
   // Shop reset countdown
   const turnsUntilReset = 5 - ((state.turn - 1) % 5);
@@ -36,38 +35,41 @@ function renderStats(state) {
 
   // Active modifiers
   const modList = [];
-  if (state.modifiers.doubleNext) modList.push('Double next ball');
-  if (state.modifiers.freePulls > 0) modList.push(`${state.modifiers.freePulls} free pull(s)`);
-  if (state.modifiers.insurance) modList.push('Insurance active');
-  if (state.modifiers.transmuteActive) modList.push('Transmuter active');
+  if (state.modifiers.doubleNext) modList.push('2x next');
+  if (state.modifiers.freePulls > 0) modList.push(`${state.modifiers.freePulls} free`);
+  if (state.modifiers.insurance) modList.push('Insured');
+  if (state.modifiers.transmuteActive) modList.push('Transmute');
   document.getElementById('active-modifiers').textContent =
-    modList.length > 0 ? modList.join(' | ') : '';
+    modList.length > 0 ? modList.join(' · ') : '';
 }
 
-// Store stable positions for balls so they don't jump on re-render
-const _ballPositions = {};
+// Ball physics for bouncing animation
+const _ballPhysics = {};
+let _bounceAnimFrame = null;
 
 function renderMachine(state) {
   const container = document.getElementById('machine-balls');
   container.innerHTML = '';
 
-  // Clean up positions for removed balls
+  // Clean up physics for removed balls
   const currentIds = new Set(state.machine.map(b => b.id));
-  for (const id in _ballPositions) {
-    if (!currentIds.has(id)) delete _ballPositions[id];
+  for (const id in _ballPhysics) {
+    if (!currentIds.has(id)) delete _ballPhysics[id];
   }
 
   state.machine.forEach(ballInstance => {
     const ballDef = BALL_CATALOG[ballInstance.type];
 
-    // Assign stable position
-    if (!_ballPositions[ballInstance.id]) {
-      _ballPositions[ballInstance.id] = {
-        left: 10 + Math.random() * 75,
-        top: 10 + Math.random() * 75,
+    // Initialize physics if new ball
+    if (!_ballPhysics[ballInstance.id]) {
+      _ballPhysics[ballInstance.id] = {
+        x: 15 + Math.random() * 70,  // % position
+        y: 15 + Math.random() * 70,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
       };
     }
-    const pos = _ballPositions[ballInstance.id];
+    const phys = _ballPhysics[ballInstance.id];
 
     const el = document.createElement('div');
     el.className = 'ball';
@@ -84,11 +86,67 @@ function renderMachine(state) {
       el.classList.add('ball-consumable');
     }
 
-    el.style.left = pos.left + '%';
-    el.style.top = pos.top + '%';
+    el.style.left = phys.x + '%';
+    el.style.top = phys.y + '%';
     el.title = `${ballDef.name}: ${ballDef.description}`;
     container.appendChild(el);
   });
+
+  // Start bounce loop if not running
+  if (!_bounceAnimFrame) {
+    startBounceLoop();
+  }
+}
+
+function startBounceLoop() {
+  const container = document.getElementById('machine-balls');
+  const GRAVITY = 0.012;
+  const DAMPING = 0.998;
+  const BOUNCE = 0.6;
+  const MIN_X = 5, MAX_X = 90;
+  const MIN_Y = 5, MAX_Y = 88;
+
+  function tick() {
+    const balls = container.querySelectorAll('.ball');
+    balls.forEach(el => {
+      const id = el.dataset.ballId;
+      const phys = _ballPhysics[id];
+      if (!phys) return;
+
+      // Apply gravity and damping
+      phys.vy += GRAVITY;
+      phys.vx *= DAMPING;
+      phys.vy *= DAMPING;
+
+      // Update position
+      phys.x += phys.vx;
+      phys.y += phys.vy;
+
+      // Bounce off walls
+      if (phys.x < MIN_X) { phys.x = MIN_X; phys.vx = Math.abs(phys.vx) * BOUNCE; }
+      if (phys.x > MAX_X) { phys.x = MAX_X; phys.vx = -Math.abs(phys.vx) * BOUNCE; }
+      if (phys.y < MIN_Y) { phys.y = MIN_Y; phys.vy = Math.abs(phys.vy) * BOUNCE; }
+      if (phys.y > MAX_Y) {
+        phys.y = MAX_Y;
+        phys.vy = -Math.abs(phys.vy) * BOUNCE;
+        // Add small random horizontal nudge on floor bounce
+        phys.vx += (Math.random() - 0.5) * 0.15;
+      }
+
+      // Tiny random jitter to keep things alive
+      if (Math.abs(phys.vx) < 0.05 && Math.abs(phys.vy) < 0.05) {
+        phys.vx += (Math.random() - 0.5) * 0.08;
+        phys.vy -= Math.random() * 0.15;
+      }
+
+      el.style.left = phys.x + '%';
+      el.style.top = phys.y + '%';
+    });
+
+    _bounceAnimFrame = requestAnimationFrame(tick);
+  }
+
+  _bounceAnimFrame = requestAnimationFrame(tick);
 }
 
 function renderShop(state) {
@@ -105,11 +163,11 @@ function renderShop(state) {
     const canAfford = state.tickets >= shopBall.cost;
     card.innerHTML = `
       <div class="shop-card-rarity" style="color: ${getBallColor(ballDef)}">
-        ${ballDef.rarity.toUpperCase()}${ballDef.consumable ? ' (consumable)' : ''}
+        ${ballDef.rarity.toUpperCase()}${ballDef.consumable ? ' · consumable' : ''}
       </div>
       <div class="shop-card-name">${ballDef.name}</div>
       <div class="shop-card-desc">${ballDef.description}</div>
-      <div class="shop-card-cost">${formatTickets(shopBall.cost)}</div>
+      <div class="shop-card-cost">&#9733; ${shopBall.cost}</div>
       ${shopBall.purchased
         ? '<div class="shop-card-sold">SOLD</div>'
         : `<button class="btn btn-buy" ${!canAfford ? 'disabled' : ''} data-action="buy-ball" data-index="${idx}">Buy</button>`
@@ -130,7 +188,7 @@ function renderShop(state) {
     card.innerHTML = `
       <div class="shop-card-name">${upgradeDef.name}</div>
       <div class="shop-card-desc">${upgradeDef.description}</div>
-      <div class="shop-card-cost">${formatTickets(shopUpgrade.cost)}</div>
+      <div class="shop-card-cost">&#9733; ${shopUpgrade.cost}</div>
       ${shopUpgrade.purchased
         ? '<div class="shop-card-sold">SOLD</div>'
         : `<button class="btn btn-buy" ${(!canAfford || !canUse) ? 'disabled' : ''} data-action="buy-upgrade" data-index="${idx}">Buy</button>`
@@ -160,6 +218,8 @@ function renderControls(state) {
   const endTurnBtn = document.getElementById('end-turn-btn');
   const shopSection = document.getElementById('shop-section');
 
+  const hasPulled = state.stats.pullsThisTurn > 0;
+
   if (state.phase === 'pulling') {
     pullBtn.style.display = '';
     endTurnBtn.style.display = 'none';
@@ -170,27 +230,29 @@ function renderControls(state) {
 
     if (state.pullsRemaining > 0 && (state.cash >= cost || isFree)) {
       pullBtn.disabled = false;
-      pullBtn.textContent = isFree ? 'PULL (Free!)' : `PULL (${formatCash(cost)})`;
+      pullBtn.textContent = isFree ? 'PULL — Free!' : 'PULL';
     } else if (state.pullsRemaining <= 0) {
-      // All pulls done, transition to shopping
       pullBtn.style.display = 'none';
-      endTurnBtn.style.display = '';
+      // Only show end turn if player has pulled at least once
+      endTurnBtn.style.display = hasPulled ? '' : 'none';
     } else {
       pullBtn.disabled = true;
-      pullBtn.textContent = `PULL (${formatCash(cost)}) - Can't afford!`;
+      pullBtn.textContent = 'PULL';
     }
   } else if (state.phase === 'shopping') {
     pullBtn.style.display = 'none';
-    endTurnBtn.style.display = '';
+    endTurnBtn.style.display = hasPulled ? '' : 'none';
   } else {
     pullBtn.style.display = 'none';
     endTurnBtn.style.display = 'none';
   }
 
-  // Show/hide shop based on phase
+  // Shop visible during shopping phase (items refresh every 5 turns)
   if (state.phase === 'shopping' || state.pullsRemaining <= 0) {
+    shopSection.style.display = '';
     shopSection.classList.remove('shop-hidden');
   } else {
+    shopSection.style.display = '';
     shopSection.classList.add('shop-hidden');
   }
 }
@@ -236,6 +298,45 @@ function renderModals(state) {
 }
 
 /**
+ * Show the inventory modal listing all balls grouped by type.
+ */
+function showInventoryModal(state) {
+  const modal = document.getElementById('inventory-modal');
+  const content = document.getElementById('inventory-content');
+  modal.style.display = 'flex';
+
+  // Group balls by type
+  const counts = {};
+  state.machine.forEach(b => {
+    counts[b.type] = (counts[b.type] || 0) + 1;
+  });
+
+  // Sort by rarity then name
+  const rarityOrder = { starter: 0, common: 1, uncommon: 2, rare: 3, legendary: 4 };
+  const sorted = Object.entries(counts).sort((a, b) => {
+    const defA = BALL_CATALOG[a[0]], defB = BALL_CATALOG[b[0]];
+    const ra = rarityOrder[defA.rarity] || 0, rb = rarityOrder[defB.rarity] || 0;
+    return ra - rb || defA.name.localeCompare(defB.name);
+  });
+
+  content.innerHTML = '';
+  sorted.forEach(([type, count]) => {
+    const ballDef = BALL_CATALOG[type];
+    const el = document.createElement('div');
+    el.className = 'inventory-item';
+    el.innerHTML = `
+      <div class="ball-preview" style="background-color: ${getBallColor(ballDef)}"></div>
+      <div>
+        <span class="inventory-item-rarity" style="color: ${getBallColor(ballDef)}">${ballDef.rarity}${ballDef.consumable ? ' · consumable' : ''}</span><br>
+        <strong>${ballDef.name}</strong> — ${ballDef.description}
+      </div>
+      <span class="inventory-item-count">&times;${count}</span>
+    `;
+    content.appendChild(el);
+  });
+}
+
+/**
  * Show the ball selection modal for upgrades that need it.
  */
 function showBallSelectionModal(state, upgradeIndex, filterFn) {
@@ -263,6 +364,43 @@ function showBallSelectionModal(state, upgradeIndex, filterFn) {
     });
     content.appendChild(el);
   });
+}
+
+/**
+ * Show a turn transition overlay with turn number and earnings summary.
+ */
+function showTurnTransition(nextTurn, cashEarned, ticketsEarned, callback) {
+  const overlay = document.getElementById('turn-transition');
+  const turnNum = document.getElementById('transition-turn');
+  const sub = document.getElementById('transition-sub');
+
+  turnNum.textContent = nextTurn;
+
+  // Build summary line
+  const parts = [];
+  if (cashEarned !== 0) {
+    const sign = cashEarned >= 0 ? '+' : '';
+    parts.push(`<span class="cash-earned">${sign}$${cashEarned}</span>`);
+  }
+  if (ticketsEarned > 0) {
+    parts.push(`<span class="tickets-earned">+${ticketsEarned} ★</span>`);
+  }
+
+  // Check for new round
+  const nextRound = getRound(nextTurn);
+  const prevRound = getRound(nextTurn - 1);
+  if (nextRound !== prevRound) {
+    parts.push(`Round ${nextRound}`);
+  }
+
+  sub.innerHTML = parts.join(' &middot; ');
+
+  overlay.classList.add('active');
+
+  setTimeout(() => {
+    overlay.classList.remove('active');
+    if (callback) setTimeout(callback, 200);
+  }, 900);
 }
 
 /**

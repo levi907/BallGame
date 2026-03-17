@@ -37,9 +37,9 @@ const BALL_CATALOG = {
     rarity: RARITY.STARTER,
     color: '#6b9e6b',
     consumable: false,
-    description: '+$2',
+    description: '+$3',
     apply(state) {
-      let cash = 2;
+      let cash = 3;
       if (state.modifiers.doubleNext) { cash *= 2; state.modifiers.doubleNext = false; }
       state.cash += cash;
       state.stats.totalCashEarned += cash;
@@ -51,9 +51,9 @@ const BALL_CATALOG = {
     rarity: RARITY.STARTER,
     color: '#7a8aaa',
     consumable: false,
-    description: '+1 ticket',
+    description: '+2 tickets',
     apply(state) {
-      let tickets = 1;
+      let tickets = 2;
       if (state.modifiers.doubleNext) { tickets *= 2; state.modifiers.doubleNext = false; }
       state.tickets += tickets;
       state.stats.totalTicketsEarned += tickets;

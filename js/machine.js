@@ -7,13 +7,16 @@
 function pullBall(state) {
   if (state.machine.length === 0) return null;
 
-  // Deduct pull cost (unless free pull)
-  if (state.modifiers.freePulls > 0) {
-    state.modifiers.freePulls -= 1;
-    addLog(state, 'Free pull!');
-  } else {
-    const cost = getPullCost(getRound(state.turn));
-    state.cash -= cost;
+  // Cost is deducted on first pull of the turn only
+  if (!state._turnCostPaid) {
+    if (state.modifiers.freePulls > 0) {
+      state.modifiers.freePulls -= 1;
+      addLog(state, 'Free pull!');
+    } else {
+      const cost = getPullCost(getRound(state.turn));
+      state.cash -= cost;
+    }
+    state._turnCostPaid = true;
   }
 
   // Pick a random ball
@@ -82,6 +85,8 @@ function removeBallFromMachine(state, ballId) {
  * Check if the player can afford a pull.
  */
 function canAffordPull(state) {
+  // If cost already paid this turn, pulls are free
+  if (state._turnCostPaid) return true;
   const cost = getPullCost(getRound(state.turn));
   return state.cash >= cost || state.modifiers.freePulls > 0;
 }

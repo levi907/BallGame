@@ -16,7 +16,7 @@ function createInitialState() {
 
   return {
     turn: 1,
-    cash: 10,
+    cash: 15,
     tickets: 0,
     pullsRemaining: 1,
     machine: machine,
