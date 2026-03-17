@@ -18,8 +18,8 @@ function renderStats(state) {
 
   document.getElementById('turn-display').textContent = state.turn;
   document.getElementById('round-display').textContent = round;
-  document.getElementById('cash-display').textContent = formatCash(state.cash);
-  document.getElementById('tickets-display').textContent = formatTickets(state.tickets);
+  document.getElementById('cash-display').textContent = state.cash;
+  document.getElementById('tickets-display').textContent = state.tickets;
   document.getElementById('pull-cost-display').textContent = formatCash(pullCost);
   document.getElementById('pulls-remaining').textContent = state.pullsRemaining;
   document.getElementById('ball-count').textContent = state.machine.length;
@@ -27,7 +27,6 @@ function renderStats(state) {
   // Progress bar (survive 30 turns)
   const progress = Math.min(state.turn / 30, 1) * 100;
   document.getElementById('progress-fill').style.width = progress + '%';
-  document.getElementById('progress-text').textContent = `Turn ${state.turn} / 30`;
 
   // Shop reset countdown
   const turnsUntilReset = 5 - ((state.turn - 1) % 5);
@@ -36,12 +35,12 @@ function renderStats(state) {
 
   // Active modifiers
   const modList = [];
-  if (state.modifiers.doubleNext) modList.push('Double next ball');
-  if (state.modifiers.freePulls > 0) modList.push(`${state.modifiers.freePulls} free pull(s)`);
-  if (state.modifiers.insurance) modList.push('Insurance active');
-  if (state.modifiers.transmuteActive) modList.push('Transmuter active');
+  if (state.modifiers.doubleNext) modList.push('2x next');
+  if (state.modifiers.freePulls > 0) modList.push(`${state.modifiers.freePulls} free`);
+  if (state.modifiers.insurance) modList.push('Insured');
+  if (state.modifiers.transmuteActive) modList.push('Transmute');
   document.getElementById('active-modifiers').textContent =
-    modList.length > 0 ? modList.join(' | ') : '';
+    modList.length > 0 ? modList.join(' · ') : '';
 }
 
 // Store stable positions for balls so they don't jump on re-render
@@ -105,11 +104,11 @@ function renderShop(state) {
     const canAfford = state.tickets >= shopBall.cost;
     card.innerHTML = `
       <div class="shop-card-rarity" style="color: ${getBallColor(ballDef)}">
-        ${ballDef.rarity.toUpperCase()}${ballDef.consumable ? ' (consumable)' : ''}
+        ${ballDef.rarity.toUpperCase()}${ballDef.consumable ? ' · consumable' : ''}
       </div>
       <div class="shop-card-name">${ballDef.name}</div>
       <div class="shop-card-desc">${ballDef.description}</div>
-      <div class="shop-card-cost">${formatTickets(shopBall.cost)}</div>
+      <div class="shop-card-cost">&#9733; ${shopBall.cost}</div>
       ${shopBall.purchased
         ? '<div class="shop-card-sold">SOLD</div>'
         : `<button class="btn btn-buy" ${!canAfford ? 'disabled' : ''} data-action="buy-ball" data-index="${idx}">Buy</button>`
@@ -130,7 +129,7 @@ function renderShop(state) {
     card.innerHTML = `
       <div class="shop-card-name">${upgradeDef.name}</div>
       <div class="shop-card-desc">${upgradeDef.description}</div>
-      <div class="shop-card-cost">${formatTickets(shopUpgrade.cost)}</div>
+      <div class="shop-card-cost">&#9733; ${shopUpgrade.cost}</div>
       ${shopUpgrade.purchased
         ? '<div class="shop-card-sold">SOLD</div>'
         : `<button class="btn btn-buy" ${(!canAfford || !canUse) ? 'disabled' : ''} data-action="buy-upgrade" data-index="${idx}">Buy</button>`
@@ -170,14 +169,13 @@ function renderControls(state) {
 
     if (state.pullsRemaining > 0 && (state.cash >= cost || isFree)) {
       pullBtn.disabled = false;
-      pullBtn.textContent = isFree ? 'PULL (Free!)' : `PULL (${formatCash(cost)})`;
+      pullBtn.textContent = isFree ? 'PULL — Free!' : 'PULL';
     } else if (state.pullsRemaining <= 0) {
-      // All pulls done, transition to shopping
       pullBtn.style.display = 'none';
       endTurnBtn.style.display = '';
     } else {
       pullBtn.disabled = true;
-      pullBtn.textContent = `PULL (${formatCash(cost)}) - Can't afford!`;
+      pullBtn.textContent = 'PULL';
     }
   } else if (state.phase === 'shopping') {
     pullBtn.style.display = 'none';
