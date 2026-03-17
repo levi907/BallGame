@@ -83,9 +83,9 @@ const BALL_CATALOG = {
     rarity: RARITY.COMMON,
     color: '#4caf50',
     consumable: false,
-    description: '+$2',
+    description: '+$4',
     apply(state) {
-      let cash = 2;
+      let cash = 4;
       if (state.modifiers.doubleNext) { cash *= 2; state.modifiers.doubleNext = false; }
       state.cash += cash;
       state.stats.totalCashEarned += cash;
