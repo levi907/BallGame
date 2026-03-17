@@ -6,7 +6,9 @@
 function render(state) {
   renderStats(state);
   renderMachine(state);
+  renderDraft(state);
   renderShop(state);
+  renderRelicsBar(state);
   renderLog(state);
   renderControls(state);
   renderModals(state);
@@ -33,10 +35,7 @@ function renderStats(state) {
   const nextRound = getRound(nextTurn);
   const nextCost = getPullCost(nextRound);
   const nextCostEl = document.getElementById('next-cost-display');
-  if (nextCost !== pullCost && state.turn < 30) {
-    nextCostEl.textContent = `Next: ${formatCash(nextCost)}`;
-    nextCostEl.className = state.cash < nextCost ? 'next-cost next-cost-warn' : 'next-cost';
-  } else if (state.turn < 30) {
+  if (state.turn < 30) {
     nextCostEl.textContent = `Next: ${formatCash(nextCost)}`;
     nextCostEl.className = state.cash < nextCost ? 'next-cost next-cost-warn' : 'next-cost';
   } else {
@@ -66,7 +65,6 @@ function renderMachine(state) {
   const container = document.getElementById('machine-balls');
   container.innerHTML = '';
 
-  // Clean up physics for removed balls
   const currentIds = new Set(state.machine.map(b => b.id));
   for (const id in _ballPhysics) {
     if (!currentIds.has(id)) delete _ballPhysics[id];
@@ -75,10 +73,9 @@ function renderMachine(state) {
   state.machine.forEach(ballInstance => {
     const ballDef = BALL_CATALOG[ballInstance.type];
 
-    // Initialize physics if new ball
     if (!_ballPhysics[ballInstance.id]) {
       _ballPhysics[ballInstance.id] = {
-        x: 15 + Math.random() * 70,  // % position
+        x: 15 + Math.random() * 70,
         y: 15 + Math.random() * 70,
         vx: (Math.random() - 0.5) * 0.4,
         vy: (Math.random() - 0.5) * 0.4,
@@ -91,15 +88,9 @@ function renderMachine(state) {
     el.dataset.ballId = ballInstance.id;
     el.style.backgroundColor = getBallColor(ballDef);
 
-    if (ballDef.rarity === RARITY.LEGENDARY) {
-      el.classList.add('ball-legendary');
-    }
-    if (ballInstance.type === 'starter_bonus') {
-      el.classList.add('ball-golden');
-    }
-    if (ballDef.consumable) {
-      el.classList.add('ball-consumable');
-    }
+    if (ballDef.rarity === RARITY.LEGENDARY) el.classList.add('ball-legendary');
+    if (ballInstance.type === 'starter_bonus') el.classList.add('ball-golden');
+    if (ballDef.consumable) el.classList.add('ball-consumable');
 
     el.style.left = phys.x + '%';
     el.style.top = phys.y + '%';
@@ -107,10 +98,7 @@ function renderMachine(state) {
     container.appendChild(el);
   });
 
-  // Start bounce loop if not running
-  if (!_bounceAnimFrame) {
-    startBounceLoop();
-  }
+  if (!_bounceAnimFrame) startBounceLoop();
 }
 
 function startBounceLoop() {
@@ -127,21 +115,16 @@ function startBounceLoop() {
       const phys = _ballPhysics[id];
       if (!phys) return;
 
-      // Damping only, no gravity — balls float freely
       phys.vx *= DAMPING;
       phys.vy *= DAMPING;
-
-      // Update position
       phys.x += phys.vx;
       phys.y += phys.vy;
 
-      // Bounce off walls
       if (phys.x < MIN_X) { phys.x = MIN_X; phys.vx = Math.abs(phys.vx) * BOUNCE; }
       if (phys.x > MAX_X) { phys.x = MAX_X; phys.vx = -Math.abs(phys.vx) * BOUNCE; }
       if (phys.y < MIN_Y) { phys.y = MIN_Y; phys.vy = Math.abs(phys.vy) * BOUNCE; }
       if (phys.y > MAX_Y) { phys.y = MAX_Y; phys.vy = -Math.abs(phys.vy) * BOUNCE; }
 
-      // Tiny random jitter to keep things drifting
       if (Math.abs(phys.vx) < 0.03 && Math.abs(phys.vy) < 0.03) {
         phys.vx += (Math.random() - 0.5) * 0.06;
         phys.vy += (Math.random() - 0.5) * 0.06;
@@ -150,15 +133,41 @@ function startBounceLoop() {
       el.style.left = phys.x + '%';
       el.style.top = phys.y + '%';
     });
-
     _bounceAnimFrame = requestAnimationFrame(tick);
   }
-
   _bounceAnimFrame = requestAnimationFrame(tick);
 }
 
+function renderDraft(state) {
+  const draftSection = document.getElementById('draft-section');
+  const draftChoices = document.getElementById('draft-choices');
+
+  if (state.phase === 'drafting' && state.draft && !state.draft.picked) {
+    draftSection.style.display = '';
+    draftChoices.innerHTML = '';
+
+    state.draft.choices.forEach((choice, idx) => {
+      const ballDef = BALL_CATALOG[choice.type];
+      const card = document.createElement('div');
+      card.className = 'draft-card';
+      card.dataset.draftIndex = idx;
+      card.innerHTML = `
+        <div class="ball-preview ball-preview-large" style="background-color: ${getBallColor(ballDef)}"></div>
+        <div class="draft-card-rarity" style="color: ${getBallColor(ballDef)}">
+          ${ballDef.rarity.toUpperCase()}${ballDef.consumable ? ' · consumable' : ''}
+        </div>
+        <div class="draft-card-name">${ballDef.name}</div>
+        <div class="draft-card-desc">${ballDef.description}</div>
+      `;
+      draftChoices.appendChild(card);
+    });
+  } else {
+    draftSection.style.display = 'none';
+  }
+}
+
 function renderShop(state) {
-  const ballsContainer = document.getElementById('shop-balls');
+  const relicsContainer = document.getElementById('shop-relics');
   const upgradesContainer = document.getElementById('shop-upgrades');
   const shopSection = document.getElementById('shop-section');
 
@@ -166,42 +175,46 @@ function renderShop(state) {
   const shopHeading = shopSection.querySelector('h2');
   shopHeading.innerHTML = `Shop <span class="shop-tickets">&#9733; ${state.tickets}</span>`;
 
-  // Render shop balls
-  ballsContainer.innerHTML = '';
-  state.shop.balls.forEach((shopBall, idx) => {
-    const ballDef = BALL_CATALOG[shopBall.type];
-    const card = document.createElement('div');
-    card.className = 'shop-card' + (shopBall.purchased ? ' purchased' : '');
+  const cloverDiscount = hasRelic(state, 'lucky_clover') ? 1 : 0;
 
-    const canAfford = state.tickets >= shopBall.cost;
-    card.innerHTML = `
-      <div class="shop-card-rarity" style="color: ${getBallColor(ballDef)}">
-        ${ballDef.rarity.toUpperCase()}${ballDef.consumable ? ' · consumable' : ''}
-      </div>
-      <div class="shop-card-name">${ballDef.name}</div>
-      <div class="shop-card-desc">${ballDef.description}</div>
-      <div class="shop-card-cost">&#9733; ${shopBall.cost}</div>
-      ${shopBall.purchased
-        ? '<div class="shop-card-sold">SOLD</div>'
-        : `<button class="btn btn-buy" ${!canAfford ? 'disabled' : ''} data-action="buy-ball" data-index="${idx}">Buy</button>`
-      }
-    `;
-    ballsContainer.appendChild(card);
-  });
+  // Render relics
+  relicsContainer.innerHTML = '';
+  if (state.shop.relics) {
+    state.shop.relics.forEach((shopRelic, idx) => {
+      const relicDef = RELIC_CATALOG[shopRelic.type];
+      const card = document.createElement('div');
+      card.className = 'shop-card shop-card-relic' + (shopRelic.purchased ? ' purchased' : '');
 
-  // Render shop upgrades
+      const effectiveCost = Math.max(1, shopRelic.cost - cloverDiscount);
+      const canAfford = state.tickets >= effectiveCost;
+      card.innerHTML = `
+        <div class="shop-card-relic-icon" style="background-color: ${relicDef.color}"></div>
+        <div class="shop-card-name">${relicDef.name}</div>
+        <div class="shop-card-desc">${relicDef.description}</div>
+        <div class="shop-card-cost">&#9733; ${effectiveCost}${cloverDiscount ? ' <span class="discount-orig">' + shopRelic.cost + '</span>' : ''}</div>
+        ${shopRelic.purchased
+          ? '<div class="shop-card-sold">ACQUIRED</div>'
+          : `<button class="btn btn-buy" ${!canAfford ? 'disabled' : ''} data-action="buy-relic" data-index="${idx}">Buy</button>`
+        }
+      `;
+      relicsContainer.appendChild(card);
+    });
+  }
+
+  // Render upgrades
   upgradesContainer.innerHTML = '';
   state.shop.upgrades.forEach((shopUpgrade, idx) => {
     const upgradeDef = UPGRADE_CATALOG[shopUpgrade.type];
     const card = document.createElement('div');
     card.className = 'shop-card shop-card-upgrade' + (shopUpgrade.purchased ? ' purchased' : '');
 
-    const canAfford = state.tickets >= shopUpgrade.cost;
+    const effectiveCost = Math.max(1, shopUpgrade.cost - cloverDiscount);
+    const canAfford = state.tickets >= effectiveCost;
     const canUse = upgradeDef.canUse(state);
     card.innerHTML = `
       <div class="shop-card-name">${upgradeDef.name}</div>
       <div class="shop-card-desc">${upgradeDef.description}</div>
-      <div class="shop-card-cost">&#9733; ${shopUpgrade.cost}</div>
+      <div class="shop-card-cost">&#9733; ${effectiveCost}${cloverDiscount ? ' <span class="discount-orig">' + shopUpgrade.cost + '</span>' : ''}</div>
       ${shopUpgrade.purchased
         ? '<div class="shop-card-sold">SOLD</div>'
         : `<button class="btn btn-buy" ${(!canAfford || !canUse) ? 'disabled' : ''} data-action="buy-upgrade" data-index="${idx}">Buy</button>`
@@ -211,11 +224,28 @@ function renderShop(state) {
   });
 }
 
+function renderRelicsBar(state) {
+  const bar = document.getElementById('relics-bar');
+  if (!state.relics || state.relics.length === 0) {
+    bar.style.display = 'none';
+    return;
+  }
+  bar.style.display = '';
+  bar.innerHTML = '';
+  state.relics.forEach(relicType => {
+    const relic = RELIC_CATALOG[relicType];
+    const el = document.createElement('div');
+    el.className = 'relic-icon';
+    el.style.backgroundColor = relic.color;
+    el.title = `${relic.name}: ${relic.description}`;
+    bar.appendChild(el);
+  });
+}
+
 function renderLog(state) {
   const logContainer = document.getElementById('game-log');
   logContainer.innerHTML = '';
 
-  // Show last 10 entries
   const recentLog = state.log.slice(-10);
   recentLog.forEach(entry => {
     const el = document.createElement('div');
@@ -241,17 +271,18 @@ function renderControls(state) {
     const cost = getPullCost(round);
     const isFree = state.modifiers.freePulls > 0;
 
-    if (state.pullsRemaining > 0 && (state.cash >= cost || isFree)) {
+    if (state.pullsRemaining > 0 && (state.cash >= cost || isFree || state._turnCostPaid)) {
       pullBtn.disabled = false;
-      pullBtn.textContent = isFree ? 'PULL — Free!' : 'PULL';
+      pullBtn.textContent = isFree && !state._turnCostPaid ? 'PULL — Free!' : 'PULL';
     } else if (state.pullsRemaining <= 0) {
       pullBtn.style.display = 'none';
-      // Only show end turn if player has pulled at least once
-      endTurnBtn.style.display = hasPulled ? '' : 'none';
     } else {
       pullBtn.disabled = true;
       pullBtn.textContent = 'PULL';
     }
+  } else if (state.phase === 'drafting') {
+    pullBtn.style.display = 'none';
+    endTurnBtn.style.display = 'none';
   } else if (state.phase === 'shopping') {
     pullBtn.style.display = 'none';
     endTurnBtn.style.display = hasPulled ? '' : 'none';
@@ -260,12 +291,10 @@ function renderControls(state) {
     endTurnBtn.style.display = 'none';
   }
 
-  // Shop visible during shopping phase (items refresh every 5 turns)
-  if (state.phase === 'shopping' || state.pullsRemaining <= 0) {
-    shopSection.style.display = '';
+  // Shop visible during shopping phase
+  if (state.phase === 'shopping') {
     shopSection.classList.remove('shop-hidden');
   } else {
-    shopSection.style.display = '';
     shopSection.classList.add('shop-hidden');
   }
 }
@@ -318,13 +347,11 @@ function showInventoryModal(state) {
   const content = document.getElementById('inventory-content');
   modal.style.display = 'flex';
 
-  // Group balls by type
   const counts = {};
   state.machine.forEach(b => {
     counts[b.type] = (counts[b.type] || 0) + 1;
   });
 
-  // Sort by rarity then name
   const rarityOrder = { starter: 0, common: 1, uncommon: 2, rare: 3, legendary: 4 };
   const sorted = Object.entries(counts).sort((a, b) => {
     const defA = BALL_CATALOG[a[0]], defB = BALL_CATALOG[b[0]];
@@ -349,9 +376,6 @@ function showInventoryModal(state) {
   });
 }
 
-/**
- * Show the ball selection modal for upgrades that need it.
- */
 function showBallSelectionModal(state, upgradeIndex, filterFn) {
   const modal = document.getElementById('ball-select-modal');
   const content = document.getElementById('ball-select-content');
@@ -379,21 +403,14 @@ function showBallSelectionModal(state, upgradeIndex, filterFn) {
   });
 }
 
-/**
- * Show the cost deduction animation on the cash display.
- */
 function showCostAnimation(amount) {
   const el = document.getElementById('cost-anim');
   el.textContent = `-$${amount}`;
   el.classList.remove('active');
-  // Force reflow to restart animation
   void el.offsetWidth;
   el.classList.add('active');
 }
 
-/**
- * Show a turn transition overlay with turn number and earnings summary.
- */
 function showTurnTransition(nextTurn, cashEarned, ticketsEarned, callback) {
   const overlay = document.getElementById('turn-transition');
   const turnNum = document.getElementById('transition-turn');
@@ -401,7 +418,6 @@ function showTurnTransition(nextTurn, cashEarned, ticketsEarned, callback) {
 
   turnNum.textContent = nextTurn;
 
-  // Build summary line
   const parts = [];
   if (cashEarned !== 0) {
     const sign = cashEarned >= 0 ? '+' : '';
@@ -411,7 +427,6 @@ function showTurnTransition(nextTurn, cashEarned, ticketsEarned, callback) {
     parts.push(`<span class="tickets-earned">+${ticketsEarned} ★</span>`);
   }
 
-  // Check for new round
   const nextRound = getRound(nextTurn);
   const prevRound = getRound(nextTurn - 1);
   if (nextRound !== prevRound) {
@@ -428,57 +443,82 @@ function showTurnTransition(nextTurn, cashEarned, ticketsEarned, callback) {
   }, 900);
 }
 
-/**
- * Show a pull animation: ball drops from machine into the result area.
- */
 function showPullResult(ballDef, message, pulledBallId) {
   const machine = document.getElementById('machine-balls');
   const toast = document.getElementById('pull-result');
   const color = getBallColor(ballDef);
 
-  // Find the pulled ball element in the machine (if still there)
-  const pulledEl = pulledBallId
-    ? machine.querySelector(`[data-ball-id="${pulledBallId}"]`)
-    : null;
+  // === Gobblegum-style animation ===
+  // Phase 1: All balls in machine spin wildly (like the machine is churning)
+  const allBalls = machine.querySelectorAll('.ball');
+  const savedPhysics = {};
 
-  // Create an animated ball that drops from machine to result area
-  const animBall = document.createElement('div');
-  animBall.className = 'ball ball-pulling';
-  animBall.style.backgroundColor = color;
-  if (ballDef.rarity === RARITY.LEGENDARY) animBall.classList.add('ball-legendary');
-  if (ballDef.consumable) animBall.classList.add('ball-consumable');
-
-  // Position at the bottom center of the machine
-  const machineRect = machine.getBoundingClientRect();
-  const panelRect = machine.closest('.panel-machine').getBoundingClientRect();
-  animBall.style.left = (machineRect.left - panelRect.left + machineRect.width / 2 - 12) + 'px';
-  animBall.style.top = (machineRect.bottom - panelRect.top - 12) + 'px';
-  animBall.style.width = '24px';
-  animBall.style.height = '24px';
-  animBall.style.position = 'absolute';
-  animBall.style.zIndex = '10';
-
-  const panel = machine.closest('.panel-machine');
-  panel.style.position = 'relative';
-  panel.appendChild(animBall);
-
-  // Hide the original ball in the machine during animation
-  if (pulledEl) pulledEl.style.opacity = '0';
-
-  // Animate: drop down to the result toast area
-  requestAnimationFrame(() => {
-    animBall.classList.add('ball-drop');
+  // Speed up all balls to simulate machine churning
+  allBalls.forEach(el => {
+    const id = el.dataset.ballId;
+    if (_ballPhysics[id]) {
+      savedPhysics[id] = { vx: _ballPhysics[id].vx, vy: _ballPhysics[id].vy };
+      _ballPhysics[id].vx = (Math.random() - 0.5) * 3;
+      _ballPhysics[id].vy = (Math.random() - 0.5) * 3;
+    }
   });
 
-  // After animation, show the result toast
+  // Add machine shake effect
+  machine.classList.add('machine-churning');
+
+  // Phase 2: After churning, one ball funnels to the bottom chute
   setTimeout(() => {
-    animBall.remove();
-    toast.innerHTML = `
-      <div class="ball-preview ball-preview-large" style="background-color: ${color}"></div>
-      <div class="pull-result-name" style="color: ${color}">${ballDef.name}</div>
-      <div class="pull-result-message">${message}</div>
-    `;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 1200);
-  }, 500);
+    // Slow balls back down
+    allBalls.forEach(el => {
+      const id = el.dataset.ballId;
+      if (_ballPhysics[id]) {
+        _ballPhysics[id].vx = (Math.random() - 0.5) * 0.5;
+        _ballPhysics[id].vy = (Math.random() - 0.5) * 0.5;
+      }
+    });
+    machine.classList.remove('machine-churning');
+
+    // Animate the pulled ball out through the chute
+    const pulledEl = pulledBallId
+      ? machine.querySelector(`[data-ball-id="${pulledBallId}"]`)
+      : null;
+
+    // Create a chute ball that drops out the bottom
+    const panel = machine.closest('.panel-machine');
+    panel.style.position = 'relative';
+    const machineRect = machine.getBoundingClientRect();
+    const panelRect = panel.getBoundingClientRect();
+
+    const chuteBall = document.createElement('div');
+    chuteBall.className = 'ball ball-chute';
+    chuteBall.style.backgroundColor = color;
+    if (ballDef.rarity === RARITY.LEGENDARY) chuteBall.classList.add('ball-legendary');
+    if (ballDef.consumable) chuteBall.classList.add('ball-consumable');
+    chuteBall.style.width = '24px';
+    chuteBall.style.height = '24px';
+    chuteBall.style.position = 'absolute';
+    chuteBall.style.zIndex = '10';
+    // Start at machine bottom center
+    chuteBall.style.left = (machineRect.left - panelRect.left + machineRect.width / 2 - 12) + 'px';
+    chuteBall.style.top = (machineRect.bottom - panelRect.top - 16) + 'px';
+    panel.appendChild(chuteBall);
+
+    if (pulledEl) pulledEl.style.opacity = '0';
+
+    // Animate: drop down into result area
+    requestAnimationFrame(() => {
+      chuteBall.classList.add('ball-chute-drop');
+    });
+
+    setTimeout(() => {
+      chuteBall.remove();
+      toast.innerHTML = `
+        <div class="ball-preview ball-preview-large" style="background-color: ${color}"></div>
+        <div class="pull-result-name" style="color: ${color}">${ballDef.name}</div>
+        <div class="pull-result-message">${message}</div>
+      `;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1200);
+    }, 450);
+  }, 600);
 }
