@@ -291,14 +291,14 @@ const BALL_CATALOG = {
     rarity: RARITY.RARE,
     color: '#e040fb',
     consumable: false,
-    description: '+$1 per pull this turn',
+    description: '+$3, pull again',
     apply(state) {
-      let cash = state.stats.pullsThisTurn;
-      if (cash < 1) cash = 1;
+      let cash = 3;
       if (state.modifiers.doubleNext) { cash *= 2; state.modifiers.doubleNext = false; }
       state.cash += cash;
       state.stats.totalCashEarned += cash;
-      return `+${formatCash(cash)}`;
+      state.pullsRemaining += 1;
+      return `+${formatCash(cash)}, pull again!`;
     },
   },
 
