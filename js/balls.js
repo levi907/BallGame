@@ -35,6 +35,7 @@ const BALL_CATALOG = {
   starter_dollar: {
     name: 'Starter Dollar',
     rarity: RARITY.STARTER,
+    color: '#6b9e6b',
     consumable: false,
     description: '+$1',
     apply(state) {
@@ -48,6 +49,7 @@ const BALL_CATALOG = {
   starter_ticket: {
     name: 'Starter Ticket',
     rarity: RARITY.STARTER,
+    color: '#7a8aaa',
     consumable: false,
     description: '+1 ticket',
     apply(state) {
@@ -61,6 +63,7 @@ const BALL_CATALOG = {
   starter_bonus: {
     name: 'Starter Bonus',
     rarity: RARITY.STARTER,
+    color: '#d4a847',
     consumable: false,
     description: '+$2, +2 tickets',
     apply(state) {
@@ -78,6 +81,7 @@ const BALL_CATALOG = {
   dollar_ball: {
     name: 'Dollar Ball',
     rarity: RARITY.COMMON,
+    color: '#4caf50',
     consumable: false,
     description: '+$2',
     apply(state) {
@@ -91,6 +95,7 @@ const BALL_CATALOG = {
   ticket_ball: {
     name: 'Ticket Ball',
     rarity: RARITY.COMMON,
+    color: '#66bb6a',
     consumable: false,
     description: '+2 tickets',
     apply(state) {
@@ -104,6 +109,7 @@ const BALL_CATALOG = {
   quick_cash: {
     name: 'Quick Cash',
     rarity: RARITY.COMMON,
+    color: '#81c784',
     consumable: true,
     description: '+$5 (consumable)',
     apply(state) {
@@ -117,6 +123,7 @@ const BALL_CATALOG = {
   ticket_stash: {
     name: 'Ticket Stash',
     rarity: RARITY.COMMON,
+    color: '#a5d6a7',
     consumable: true,
     description: '+5 tickets (consumable)',
     apply(state) {
@@ -130,6 +137,7 @@ const BALL_CATALOG = {
   copper_ball: {
     name: 'Copper Ball',
     rarity: RARITY.COMMON,
+    color: '#b87333',
     consumable: false,
     description: '+$1, +1 ticket',
     apply(state) {
@@ -147,6 +155,7 @@ const BALL_CATALOG = {
   chain_ball: {
     name: 'Chain Ball',
     rarity: RARITY.UNCOMMON,
+    color: '#42a5f5',
     consumable: false,
     description: '+$1, pull again',
     apply(state) {
@@ -161,6 +170,7 @@ const BALL_CATALOG = {
   lucky_ticket: {
     name: 'Lucky Ticket',
     rarity: RARITY.UNCOMMON,
+    color: '#29b6f6',
     consumable: false,
     description: '+2 tickets, pull again',
     apply(state) {
@@ -175,6 +185,7 @@ const BALL_CATALOG = {
   payday: {
     name: 'Payday',
     rarity: RARITY.UNCOMMON,
+    color: '#5c6bc0',
     consumable: true,
     description: '+$10 (consumable)',
     apply(state) {
@@ -188,6 +199,7 @@ const BALL_CATALOG = {
   golden_ticket: {
     name: 'Golden Ticket',
     rarity: RARITY.UNCOMMON,
+    color: '#ffd54f',
     consumable: true,
     description: '+8 tickets (consumable)',
     apply(state) {
@@ -201,6 +213,7 @@ const BALL_CATALOG = {
   doubler: {
     name: 'Doubler',
     rarity: RARITY.UNCOMMON,
+    color: '#7e57c2',
     consumable: false,
     description: 'Next ball this turn pays double',
     apply(state) {
@@ -213,6 +226,7 @@ const BALL_CATALOG = {
   midas_ball: {
     name: 'Midas Ball',
     rarity: RARITY.RARE,
+    color: '#ce93d8',
     consumable: false,
     description: '+$3 + $1 per round',
     apply(state) {
@@ -226,6 +240,7 @@ const BALL_CATALOG = {
   jackpot_ball: {
     name: 'Jackpot Ball',
     rarity: RARITY.RARE,
+    color: '#ab47bc',
     consumable: true,
     description: '+$20 (consumable)',
     apply(state) {
@@ -239,6 +254,7 @@ const BALL_CATALOG = {
   recycler: {
     name: 'Recycler',
     rarity: RARITY.RARE,
+    color: '#8e24aa',
     consumable: false,
     description: '+$2, remove a starter $1 ball',
     apply(state) {
@@ -259,6 +275,7 @@ const BALL_CATALOG = {
   ticket_machine: {
     name: 'Ticket Machine',
     rarity: RARITY.RARE,
+    color: '#ba68c8',
     consumable: false,
     description: '+1 ticket per ball in machine',
     apply(state) {
@@ -272,6 +289,7 @@ const BALL_CATALOG = {
   combo_ball: {
     name: 'Combo Ball',
     rarity: RARITY.RARE,
+    color: '#e040fb',
     consumable: false,
     description: '+$1 per pull this turn',
     apply(state) {
@@ -288,6 +306,7 @@ const BALL_CATALOG = {
   diamond_ball: {
     name: 'Diamond Ball',
     rarity: RARITY.LEGENDARY,
+    color: '#b9f2ff',
     consumable: false,
     description: '+$5, +3 tickets',
     apply(state) {
@@ -303,6 +322,7 @@ const BALL_CATALOG = {
   infinity_ball: {
     name: 'Infinity Ball',
     rarity: RARITY.LEGENDARY,
+    color: '#ffab40',
     consumable: false,
     description: 'Pull 2 additional balls',
     apply(state) {
@@ -313,6 +333,7 @@ const BALL_CATALOG = {
   transmuter: {
     name: 'Transmuter',
     rarity: RARITY.LEGENDARY,
+    color: '#ff6e40',
     consumable: false,
     description: 'Convert tickets earned this turn to $',
     apply(state) {
@@ -323,6 +344,7 @@ const BALL_CATALOG = {
   loaded_machine: {
     name: 'Loaded Machine',
     rarity: RARITY.LEGENDARY,
+    color: '#ffd740',
     consumable: true,
     description: '+$8 per unique ball type (consumable)',
     apply(state) {
@@ -335,6 +357,13 @@ const BALL_CATALOG = {
     },
   },
 };
+
+/**
+ * Get the display color for a ball type.
+ */
+function getBallColor(ballDef) {
+  return ballDef.color || RARITY_COLORS[ballDef.rarity];
+}
 
 /**
  * Get all ball types that can appear in the shop (non-starter).

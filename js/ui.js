@@ -44,24 +44,48 @@ function renderStats(state) {
     modList.length > 0 ? modList.join(' | ') : '';
 }
 
+// Store stable positions for balls so they don't jump on re-render
+const _ballPositions = {};
+
 function renderMachine(state) {
   const container = document.getElementById('machine-balls');
   container.innerHTML = '';
 
+  // Clean up positions for removed balls
+  const currentIds = new Set(state.machine.map(b => b.id));
+  for (const id in _ballPositions) {
+    if (!currentIds.has(id)) delete _ballPositions[id];
+  }
+
   state.machine.forEach(ballInstance => {
     const ballDef = BALL_CATALOG[ballInstance.type];
+
+    // Assign stable position
+    if (!_ballPositions[ballInstance.id]) {
+      _ballPositions[ballInstance.id] = {
+        left: 10 + Math.random() * 75,
+        top: 10 + Math.random() * 75,
+      };
+    }
+    const pos = _ballPositions[ballInstance.id];
+
     const el = document.createElement('div');
     el.className = 'ball';
-    el.style.backgroundColor = RARITY_COLORS[ballDef.rarity];
+    el.dataset.ballId = ballInstance.id;
+    el.style.backgroundColor = getBallColor(ballDef);
+
     if (ballDef.rarity === RARITY.LEGENDARY) {
       el.classList.add('ball-legendary');
+    }
+    if (ballInstance.type === 'starter_bonus') {
+      el.classList.add('ball-golden');
     }
     if (ballDef.consumable) {
       el.classList.add('ball-consumable');
     }
-    // Random position within machine
-    el.style.left = (10 + Math.random() * 75) + '%';
-    el.style.top = (10 + Math.random() * 75) + '%';
+
+    el.style.left = pos.left + '%';
+    el.style.top = pos.top + '%';
     el.title = `${ballDef.name}: ${ballDef.description}`;
     container.appendChild(el);
   });
@@ -80,7 +104,7 @@ function renderShop(state) {
 
     const canAfford = state.tickets >= shopBall.cost;
     card.innerHTML = `
-      <div class="shop-card-rarity" style="color: ${RARITY_COLORS[ballDef.rarity]}">
+      <div class="shop-card-rarity" style="color: ${getBallColor(ballDef)}">
         ${ballDef.rarity.toUpperCase()}${ballDef.consumable ? ' (consumable)' : ''}
       </div>
       <div class="shop-card-name">${ballDef.name}</div>
@@ -183,7 +207,7 @@ function renderModals(state) {
       const el = document.createElement('div');
       el.className = 'peek-ball';
       el.innerHTML = `
-        <div class="ball-preview" style="background-color: ${RARITY_COLORS[ballDef.rarity]}"></div>
+        <div class="ball-preview" style="background-color: ${getBallColor(ballDef)}"></div>
         <div>${ballDef.name}</div>
         <div class="peek-desc">${ballDef.description}</div>
       `;
@@ -227,7 +251,7 @@ function showBallSelectionModal(state, upgradeIndex, filterFn) {
     const el = document.createElement('div');
     el.className = 'ball-select-item';
     el.innerHTML = `
-      <div class="ball-preview" style="background-color: ${RARITY_COLORS[ballDef.rarity]}"></div>
+      <div class="ball-preview" style="background-color: ${getBallColor(ballDef)}"></div>
       <div>
         <strong>${ballDef.name}</strong><br>
         <span class="peek-desc">${ballDef.description}</span>
@@ -242,15 +266,56 @@ function showBallSelectionModal(state, upgradeIndex, filterFn) {
 }
 
 /**
- * Show a pull result toast.
+ * Show a pull animation: ball drops from machine into the result area.
  */
-function showPullResult(ballDef, message) {
+function showPullResult(ballDef, message, pulledBallId) {
+  const machine = document.getElementById('machine-balls');
   const toast = document.getElementById('pull-result');
-  toast.innerHTML = `
-    <div class="ball-preview ball-preview-large" style="background-color: ${RARITY_COLORS[ballDef.rarity]}"></div>
-    <div class="pull-result-name" style="color: ${RARITY_COLORS[ballDef.rarity]}">${ballDef.name}</div>
-    <div class="pull-result-message">${message}</div>
-  `;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 1500);
+  const color = getBallColor(ballDef);
+
+  // Find the pulled ball element in the machine (if still there)
+  const pulledEl = pulledBallId
+    ? machine.querySelector(`[data-ball-id="${pulledBallId}"]`)
+    : null;
+
+  // Create an animated ball that drops from machine to result area
+  const animBall = document.createElement('div');
+  animBall.className = 'ball ball-pulling';
+  animBall.style.backgroundColor = color;
+  if (ballDef.rarity === RARITY.LEGENDARY) animBall.classList.add('ball-legendary');
+  if (ballDef.consumable) animBall.classList.add('ball-consumable');
+
+  // Position at the bottom center of the machine
+  const machineRect = machine.getBoundingClientRect();
+  const panelRect = machine.closest('.panel-machine').getBoundingClientRect();
+  animBall.style.left = (machineRect.left - panelRect.left + machineRect.width / 2 - 12) + 'px';
+  animBall.style.top = (machineRect.bottom - panelRect.top - 12) + 'px';
+  animBall.style.width = '24px';
+  animBall.style.height = '24px';
+  animBall.style.position = 'absolute';
+  animBall.style.zIndex = '10';
+
+  const panel = machine.closest('.panel-machine');
+  panel.style.position = 'relative';
+  panel.appendChild(animBall);
+
+  // Hide the original ball in the machine during animation
+  if (pulledEl) pulledEl.style.opacity = '0';
+
+  // Animate: drop down to the result toast area
+  requestAnimationFrame(() => {
+    animBall.classList.add('ball-drop');
+  });
+
+  // After animation, show the result toast
+  setTimeout(() => {
+    animBall.remove();
+    toast.innerHTML = `
+      <div class="ball-preview ball-preview-large" style="background-color: ${color}"></div>
+      <div class="pull-result-name" style="color: ${color}">${ballDef.name}</div>
+      <div class="pull-result-message">${message}</div>
+    `;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1200);
+  }, 500);
 }

@@ -68,7 +68,7 @@ function handlePull() {
 
   const { ball, ballDef, message } = result;
   addLog(gameState, `Pulled ${ballDef.name}: ${message}`);
-  showPullResult(ballDef, message);
+  showPullResult(ballDef, message, ball.id);
 
   // Check if pulls are done
   if (gameState.pullsRemaining <= 0) {
