@@ -49,8 +49,11 @@
         </div>
       </div>
       <div id="pull-result" class="pull-result"></div>
-      <button class="btn btn-pull" id="pull-btn">PULL</button>
-      <button class="btn btn-end-turn" id="end-turn-btn" style="display:none">End Turn &rarr;</button>
+      <div class="machine-actions">
+        <button class="btn btn-pull" id="pull-btn">PULL</button>
+        <button class="btn btn-end-turn" id="end-turn-btn" style="display:none">End Turn &rarr;</button>
+      </div>
+      <button class="btn btn-small btn-inventory" id="inventory-btn">View Balls</button>
 
       <!-- Turn transition overlay -->
       <div class="turn-transition" id="turn-transition">
@@ -107,6 +110,14 @@
         <div>High score: <strong id="gameover-highscore">$0</strong></div>
       </div>
       <button class="btn btn-pull" id="play-again-btn">Play Again</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="inventory-modal" style="display:none">
+    <div class="modal modal-rules">
+      <h2>Your Machine</h2>
+      <div class="inventory-list" id="inventory-content"></div>
+      <button class="btn" id="inventory-close-btn">Close</button>
     </div>
   </div>
 

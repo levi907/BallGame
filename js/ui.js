@@ -43,30 +43,33 @@ function renderStats(state) {
     modList.length > 0 ? modList.join(' · ') : '';
 }
 
-// Store stable positions for balls so they don't jump on re-render
-const _ballPositions = {};
+// Ball physics for bouncing animation
+const _ballPhysics = {};
+let _bounceAnimFrame = null;
 
 function renderMachine(state) {
   const container = document.getElementById('machine-balls');
   container.innerHTML = '';
 
-  // Clean up positions for removed balls
+  // Clean up physics for removed balls
   const currentIds = new Set(state.machine.map(b => b.id));
-  for (const id in _ballPositions) {
-    if (!currentIds.has(id)) delete _ballPositions[id];
+  for (const id in _ballPhysics) {
+    if (!currentIds.has(id)) delete _ballPhysics[id];
   }
 
   state.machine.forEach(ballInstance => {
     const ballDef = BALL_CATALOG[ballInstance.type];
 
-    // Assign stable position
-    if (!_ballPositions[ballInstance.id]) {
-      _ballPositions[ballInstance.id] = {
-        left: 10 + Math.random() * 75,
-        top: 10 + Math.random() * 75,
+    // Initialize physics if new ball
+    if (!_ballPhysics[ballInstance.id]) {
+      _ballPhysics[ballInstance.id] = {
+        x: 15 + Math.random() * 70,  // % position
+        y: 15 + Math.random() * 70,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
       };
     }
-    const pos = _ballPositions[ballInstance.id];
+    const phys = _ballPhysics[ballInstance.id];
 
     const el = document.createElement('div');
     el.className = 'ball';
@@ -83,11 +86,67 @@ function renderMachine(state) {
       el.classList.add('ball-consumable');
     }
 
-    el.style.left = pos.left + '%';
-    el.style.top = pos.top + '%';
+    el.style.left = phys.x + '%';
+    el.style.top = phys.y + '%';
     el.title = `${ballDef.name}: ${ballDef.description}`;
     container.appendChild(el);
   });
+
+  // Start bounce loop if not running
+  if (!_bounceAnimFrame) {
+    startBounceLoop();
+  }
+}
+
+function startBounceLoop() {
+  const container = document.getElementById('machine-balls');
+  const GRAVITY = 0.012;
+  const DAMPING = 0.998;
+  const BOUNCE = 0.6;
+  const MIN_X = 5, MAX_X = 90;
+  const MIN_Y = 5, MAX_Y = 88;
+
+  function tick() {
+    const balls = container.querySelectorAll('.ball');
+    balls.forEach(el => {
+      const id = el.dataset.ballId;
+      const phys = _ballPhysics[id];
+      if (!phys) return;
+
+      // Apply gravity and damping
+      phys.vy += GRAVITY;
+      phys.vx *= DAMPING;
+      phys.vy *= DAMPING;
+
+      // Update position
+      phys.x += phys.vx;
+      phys.y += phys.vy;
+
+      // Bounce off walls
+      if (phys.x < MIN_X) { phys.x = MIN_X; phys.vx = Math.abs(phys.vx) * BOUNCE; }
+      if (phys.x > MAX_X) { phys.x = MAX_X; phys.vx = -Math.abs(phys.vx) * BOUNCE; }
+      if (phys.y < MIN_Y) { phys.y = MIN_Y; phys.vy = Math.abs(phys.vy) * BOUNCE; }
+      if (phys.y > MAX_Y) {
+        phys.y = MAX_Y;
+        phys.vy = -Math.abs(phys.vy) * BOUNCE;
+        // Add small random horizontal nudge on floor bounce
+        phys.vx += (Math.random() - 0.5) * 0.15;
+      }
+
+      // Tiny random jitter to keep things alive
+      if (Math.abs(phys.vx) < 0.05 && Math.abs(phys.vy) < 0.05) {
+        phys.vx += (Math.random() - 0.5) * 0.08;
+        phys.vy -= Math.random() * 0.15;
+      }
+
+      el.style.left = phys.x + '%';
+      el.style.top = phys.y + '%';
+    });
+
+    _bounceAnimFrame = requestAnimationFrame(tick);
+  }
+
+  _bounceAnimFrame = requestAnimationFrame(tick);
 }
 
 function renderShop(state) {
@@ -159,6 +218,8 @@ function renderControls(state) {
   const endTurnBtn = document.getElementById('end-turn-btn');
   const shopSection = document.getElementById('shop-section');
 
+  const hasPulled = state.stats.pullsThisTurn > 0;
+
   if (state.phase === 'pulling') {
     pullBtn.style.display = '';
     endTurnBtn.style.display = 'none';
@@ -172,14 +233,15 @@ function renderControls(state) {
       pullBtn.textContent = isFree ? 'PULL — Free!' : 'PULL';
     } else if (state.pullsRemaining <= 0) {
       pullBtn.style.display = 'none';
-      endTurnBtn.style.display = '';
+      // Only show end turn if player has pulled at least once
+      endTurnBtn.style.display = hasPulled ? '' : 'none';
     } else {
       pullBtn.disabled = true;
       pullBtn.textContent = 'PULL';
     }
   } else if (state.phase === 'shopping') {
     pullBtn.style.display = 'none';
-    endTurnBtn.style.display = '';
+    endTurnBtn.style.display = hasPulled ? '' : 'none';
   } else {
     pullBtn.style.display = 'none';
     endTurnBtn.style.display = 'none';
@@ -236,6 +298,45 @@ function renderModals(state) {
   } else {
     gameOverModal.style.display = 'none';
   }
+}
+
+/**
+ * Show the inventory modal listing all balls grouped by type.
+ */
+function showInventoryModal(state) {
+  const modal = document.getElementById('inventory-modal');
+  const content = document.getElementById('inventory-content');
+  modal.style.display = 'flex';
+
+  // Group balls by type
+  const counts = {};
+  state.machine.forEach(b => {
+    counts[b.type] = (counts[b.type] || 0) + 1;
+  });
+
+  // Sort by rarity then name
+  const rarityOrder = { starter: 0, common: 1, uncommon: 2, rare: 3, legendary: 4 };
+  const sorted = Object.entries(counts).sort((a, b) => {
+    const defA = BALL_CATALOG[a[0]], defB = BALL_CATALOG[b[0]];
+    const ra = rarityOrder[defA.rarity] || 0, rb = rarityOrder[defB.rarity] || 0;
+    return ra - rb || defA.name.localeCompare(defB.name);
+  });
+
+  content.innerHTML = '';
+  sorted.forEach(([type, count]) => {
+    const ballDef = BALL_CATALOG[type];
+    const el = document.createElement('div');
+    el.className = 'inventory-item';
+    el.innerHTML = `
+      <div class="ball-preview" style="background-color: ${getBallColor(ballDef)}"></div>
+      <div>
+        <span class="inventory-item-rarity" style="color: ${getBallColor(ballDef)}">${ballDef.rarity}${ballDef.consumable ? ' · consumable' : ''}</span><br>
+        <strong>${ballDef.name}</strong> — ${ballDef.description}
+      </div>
+      <span class="inventory-item-count">&times;${count}</span>
+    `;
+    content.appendChild(el);
+  });
 }
 
 /**

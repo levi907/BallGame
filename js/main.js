@@ -202,6 +202,14 @@ document.addEventListener('DOMContentLoaded', () => {
     pendingUpgradeIndex = null;
   });
 
+  // Inventory
+  document.getElementById('inventory-btn').addEventListener('click', () => {
+    showInventoryModal(gameState);
+  });
+  document.getElementById('inventory-close-btn').addEventListener('click', () => {
+    document.getElementById('inventory-modal').style.display = 'none';
+  });
+
   // How to play
   document.getElementById('how-to-play-btn').addEventListener('click', () => {
     document.getElementById('rules-modal').style.display = 'flex';

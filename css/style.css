@@ -629,6 +629,62 @@ main {
   color: var(--text-primary);
 }
 
+/* ── Machine Actions ── */
+
+.machine-actions {
+  width: 100%;
+}
+
+.btn-inventory {
+  width: 100%;
+  margin-top: 6px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.btn-inventory:hover {
+  color: var(--text-secondary);
+  border-color: var(--purple-muted);
+}
+
+/* ── Inventory Modal ── */
+
+.inventory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 340px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  text-align: left;
+}
+
+.inventory-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
+
+.inventory-item-count {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.inventory-item-rarity {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 /* ── Turn Transition ── */
 
 .turn-transition {
